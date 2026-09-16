@@ -1,1 +1,410 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>워드마스터 EBS 파이널 1200 · 단어 시험</title>
+<style>
+  :root{
+    --bg:#f5f7f4;
+    --card:#ffffff;
+    --ink:#1f2a24;
+    --sub:#68766e;
+    --brand:#2f8f5b;
+    --brand-dark:#226e46;
+    --good:#1fae6b;
+    --good-bg:#e8faf1;
+    --bad:#e8455c;
+    --bad-bg:#fdecee;
+    --line:#e3e9e5;
+    --tab-inactive:#98a69e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);min-height:100vh;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    color:var(--ink);
+    padding:20px 12px;
+  }
+  #vocab-app{
+    max-width:480px;margin:0 auto;min-height:600px;
+    display:flex;flex-direction:column;
+  }
+  .va-header{padding:18px 20px 0 20px;}
+  .va-title{font-size:19px;font-weight:800;margin:0 0 14px 0;}
+  .va-tabs{display:flex;gap:6px;background:#e7ebe8;padding:4px;border-radius:12px;}
+  .va-tab{
+    flex:1;text-align:center;padding:10px 6px;border-radius:9px;
+    font-weight:700;font-size:13.5px;color:var(--tab-inactive);cursor:pointer;
+    user-select:none;display:flex;align-items:center;justify-content:center;gap:5px;
+    transition:all .15s ease;
+  }
+  .va-tab.active{background:var(--card);color:var(--brand);box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+  .va-badge{background:var(--bad);color:#fff;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;min-width:18px;}
+  .va-body{flex:1;padding:18px 20px 24px 20px;overflow-y:auto;}
 
+  .va-start{background:var(--card);border-radius:16px;padding:24px 20px;text-align:center;margin-top:10px;}
+  .va-start h2{font-size:17px;margin:0 0 6px 0;}
+  .va-start p{color:var(--sub);font-size:13px;margin:0 0 16px 0;line-height:1.5;}
+  .va-label{font-size:12px;font-weight:800;color:var(--sub);margin-bottom:8px;text-align:left;}
+  .va-count-row{display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;}
+  .va-count-btn{
+    padding:8px 13px;border-radius:10px;border:1.5px solid var(--line);background:#fff;
+    font-size:13px;font-weight:700;color:var(--sub);cursor:pointer;
+  }
+  .va-count-btn.sel{border-color:var(--brand);color:var(--brand);background:#eaf5ef;}
+  .va-select{
+    width:100%;padding:12px 14px;border-radius:11px;border:1.5px solid var(--line);
+    background:#fff;font-size:14.5px;font-family:inherit;color:var(--ink);
+    margin-bottom:16px;outline:none;
+  }
+  .va-select:focus{border-color:var(--brand);}
+  .va-primary-btn{
+    background:var(--brand);color:#fff;border:none;padding:14px 20px;border-radius:12px;
+    font-size:15px;font-weight:800;width:100%;cursor:pointer;
+  }
+  .va-primary-btn:active{background:var(--brand-dark);}
+
+  .va-progress-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:8px;}
+  .va-progress-bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:20px;}
+  .va-progress-fill{height:100%;background:var(--brand);border-radius:99px;transition:width .25s ease;}
+  .va-qcard{background:var(--card);border-radius:16px;padding:26px 20px;text-align:center;margin-bottom:18px;}
+  .va-qtype{font-size:11px;font-weight:800;color:var(--brand);background:#eaf5ef;display:inline-block;padding:3px 10px;border-radius:999px;margin-bottom:14px;}
+  .va-qword{font-size:21px;font-weight:800;line-height:1.45;word-break:keep-all;}
+  .va-choices{display:flex;flex-direction:column;gap:10px;}
+  .va-choice{
+    background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;
+    font-size:14.5px;font-weight:600;text-align:left;cursor:pointer;line-height:1.4;word-break:keep-all;
+  }
+  .va-choice:active{background:#f1f4f2;}
+  .va-choice.correct{background:var(--good-bg);border-color:var(--good);color:var(--good);}
+  .va-choice.wrong{background:var(--bad-bg);border-color:var(--bad);color:var(--bad);}
+  .va-choice.disabled{pointer-events:none;}
+  .va-next-wrap{margin-top:16px;}
+  .va-feedback{text-align:center;font-size:13px;font-weight:700;margin-top:10px;min-height:18px;word-break:keep-all;line-height:1.4;}
+  .va-feedback.ok{color:var(--good);}
+  .va-feedback.no{color:var(--bad);}
+
+  .va-result{background:var(--card);border-radius:16px;padding:30px 20px;text-align:center;}
+  .va-result h2{font-size:18px;margin:0 0 4px 0;}
+  .va-score{font-size:38px;font-weight:900;color:var(--brand);margin:14px 0 4px 0;}
+  .va-score-sub{color:var(--sub);font-size:13px;margin-bottom:22px;line-height:1.5;}
+
+  .va-search-input{
+    width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--line);
+    background:var(--card);font-size:15px;font-family:inherit;outline:none;
+  }
+  .va-search-input:focus{border-color:var(--brand);}
+
+  .va-wb-empty{text-align:center;color:var(--sub);font-size:14px;padding:56px 20px;line-height:1.6;}
+  .va-wb-item{
+    background:var(--card);border-radius:14px;padding:14px 16px;display:flex;
+    justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;
+  }
+  .va-wb-en{font-weight:800;font-size:15px;margin-bottom:3px;}
+  .va-wb-ko{font-size:12.5px;color:var(--sub);line-height:1.45;}
+  .va-wb-day{font-size:11px;color:#a8b3ac;margin-top:3px;}
+  .va-wb-btn{
+    flex-shrink:0;background:#eaf5ef;color:var(--brand);border:none;padding:9px 12px;
+    border-radius:9px;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;
+  }
+  .va-wb-btn:active{background:#d8ece1;}
+  .va-note{text-align:center;font-size:11px;color:#b0bab4;margin-top:16px;}
+</style>
+</head>
+<body>
+
+<div id="vocab-app">
+  <div class="va-header">
+    <p class="va-title">📗 워드마스터 EBS 파이널 1200</p>
+    <div class="va-tabs">
+      <div class="va-tab active" id="tab-quiz" onclick="VA.switchTab('quiz')">시험지</div>
+      <div class="va-tab" id="tab-search" onclick="VA.switchTab('search')">단어 찾기</div>
+      <div class="va-tab" id="tab-wb" onclick="VA.switchTab('wb')">
+        내 단어장 <span class="va-badge" id="wb-badge" style="display:none;">0</span>
+      </div>
+    </div>
+  </div>
+  <div class="va-body" id="va-body"></div>
+</div>
+
+<script>
+(function(){
+
+  const BASE_WORDS = [{"en":"accomodation","ko":"숙박 시설, 편의 시설","day":"1-2"},{"en":"conform","ko":"순응하다, 따르다","day":"1-2"},{"en":"procedural","ko":"절차의, 과정상의","day":"1-2"},{"en":"irrationality","ko":"불합리, 부조리","day":"1-2"},{"en":"resistant","ko":"저항하는, 견디어 내는; 방해하는","day":"1-2"},{"en":"pretentious","ko":"허세 부리는, 가식적인","day":"1-2"},{"en":"endeavor","ko":"노력,노력행위, 애쓰다, 노력하다","day":"1-2"},{"en":"conceal","ko":"감추다, 숨기다","day":"1-2"},{"en":"on duty","ko":"근무 중인, 당번인","day":"1-2"},{"en":"redundant","ko":"불필요한, 여분의","day":"1-2"},{"en":"shiver","ko":"(몸을) 떨다, 전율, 오한","day":"1-2"},{"en":"pronounce","ko":"선언하다, 표명하다, 발음하다","day":"1-2"},{"en":"plead","ko":"애원하다; 변호하다","day":"1-2"},{"en":"generosity","ko":"너그러움, 자비심","day":"1-2"},{"en":"adore","ko":"숭배하다, 흠모하다, 매우 좋아하다","day":"1-2"},{"en":"deliberate","ko":"신중한; 의도적인, 신중히 생각하다","day":"1-2"},{"en":"stray","ko":"길을 잃다, 방황하다, 길을 잃은, 빗나간","day":"1-2"},{"en":"trustworthy","ko":"신뢰할 수 있는","day":"1-2"},{"en":"plunge","ko":"급락하다, 추락하다; 던져 넣다","day":"1-2"},{"en":"frantic","ko":"제정신이 아닌, 정신없이 서두르는","day":"1-2"},{"en":"agonizing","ko":"고통스러운","day":"1-2"},{"en":"disastrous","ko":"비참한, 처참한","day":"1-2"},{"en":"feast","ko":"축제, 연회, 마음껏 즐기다, 축연을 베풀다","day":"1-2"},{"en":"adjacent","ko":"인접한, 가까운","day":"1-2"},{"en":"stutter","ko":"말을 더듬다, 말 더듬기","day":"1-2"},{"en":"provocative","ko":"도발적인, 자극적인","day":"1-2"},{"en":"shred","ko":"조각조각 찢다, (가늘고 작은) 조각","day":"1-2"},{"en":"offend","ko":"기분을 상하게 하다","day":"1-2"},{"en":"overlook","ko":"간과하다, 못 보고 넘어가다, 눈감아주다, 내려다보다","day":"1-2"},{"en":"thrust","ko":"밀다, 밀치다; 찌르다, 요지, 찌르기","day":"1-2"},{"en":"vitality","ko":"활력, 생명력; 활기, 생기","day":"1-2"},{"en":"tremendous","ko":"거대한, 엄청난","day":"1-2"},{"en":"displace","ko":"대신하다, 대체하다, 옮겨 놓다","day":"1-2"},{"en":"imminent","ko":"금방이라도 닥칠 듯한, 절박한","day":"1-2"},{"en":"unfold","ko":"펼쳐지다, 펼치다","day":"1-2"},{"en":"conspiracy","ko":"음모, 모의","day":"1-2"},{"en":"cowardly","ko":"겁 많은, 비겁한, 비열한","day":"1-2"},{"en":"faint","ko":"희미한, 기절하다","day":"1-2"},{"en":"applause","ko":"박수갈채","day":"1-2"},{"en":"astonish","ko":"깜짝 놀라게 하다","day":"1-2"},{"en":"exclaim","ko":"외치다, 소리치다","day":"1-2"},{"en":"dissent","ko":"반대하다, 반대, 의견 차이","day":"1-2"},{"en":"enroll","ko":"입학하다, 등록하다","day":"1-2"},{"en":"gorgeous","ko":"아주 멋진, 화려한","day":"1-2"},{"en":"glimpse","ko":"힐끗[얼핏] 보기, 일견, 힐끗[얼핏] 보다","day":"1-2"},{"en":"ingenious","ko":"기발한, 독창적인","day":"1-2"},{"en":"hue","ko":"빛깔, 색조","day":"1-2"},{"en":"assure","ko":"확신[안심]시키다, 분명히 말하다","day":"1-2"},{"en":"awkward","ko":"어색한; 서투른","day":"1-2"},{"en":"confront","ko":"맞서다, 직면하다","day":"1-2"},{"en":"blur","ko":"흐릿해지다, 모호해지다","day":"1-2"},{"en":"grim","ko":"엄숙한; 암울한, 음침한","day":"1-2"},{"en":"suspend","ko":"매달다, 걸다, 중지하다, 보류하다","day":"1-2"},{"en":"startle","ko":"깜짝 놀라게 하다","day":"1-2"},{"en":"awful","ko":"끔찍한, 무서운","day":"1-2"},{"en":"drawback","ko":"결점, 문제점; 장애","day":"1-2"},{"en":"flip","ko":"(손가락으로) 튀기다, 홱 뒤집다","day":"1-2"},{"en":"ethical","ko":"윤리적인, 도덕상의","day":"1-2"},{"en":"erect","ko":"똑바로 선, 직립한, 건립하다, 세우다","day":"1-2"},{"en":"indicate","ko":"나타내다, 보여 주다","day":"1-2"},{"en":"adversity","ko":"역격, 불행","day":"1-2"},{"en":"conclusion","ko":"결론, 결말","day":"1-2"},{"en":"pledge","ko":"약속, 맹세, 약속하다, 맹세하다","day":"1-2"},{"en":"blurt","ko":"불쑥 말하다, 누석하다","day":"1-2"},{"en":"inaccurate","ko":"부정확한; 잘못된","day":"1-2"},{"en":"awakening","ko":"각성, 자각, 사람을 깨닫게 하는","day":"1-2"},{"en":"disregard","ko":"무시하다, 경시하다, 무시, 경시","day":"1-2"},{"en":"inference","ko":"추론; 추론의 결과","day":"1-2"},{"en":"cope with","ko":"~에 대처하다, ~을 처리하다","day":"1-2"},{"en":"critical","ko":"비판적인, 대단히 중요한","day":"1-2"},{"en":"chase away","ko":"쫓아 버리다","day":"1-2"},{"en":"statement","ko":"진술, 말, 설명","day":"1-2"},{"en":"affirm","ko":"단언하다, 확인하다","day":"1-2"},{"en":"initiative","ko":"계획, 결단력, 주도권","day":"1-2"},{"en":"celebrated","ko":"유명한, 저명한","day":"1-2"},{"en":"self-conscious","ko":"자의식이 강한, 의식적인","day":"1-2"},{"en":"objectionable","ko":"불쾌한, 무례한","day":"1-2"},{"en":"ridicule","ko":"조롱, 조소, 비웃다, 조롱하다","day":"1-2"},{"en":"limb","ko":"사지, 팔다리; 나뭇가지","day":"1-2"},{"en":"expand","ko":"확장하다, 확대하다; 팽창시키다","day":"1-2"},{"en":"adolescence","ko":"사춘기, 청소년기","day":"3-4"},{"en":"courageous","ko":"용감한","day":"3-4"},{"en":"spoil","ko":"망치다, 못 쓰게 하다, 아이를 버릇없이 키우다","day":"3-4"},{"en":"enthusiasm","ko":"열정, 열광","day":"3-4"},{"en":"sensitive","ko":"민감한, 예민한, 섬세한","day":"3-4"},{"en":"integrity","ko":"진실성, 정직, 완전성, 온전함","day":"3-4"},{"en":"be liable to","ko":"~하기 쉽다, ~에 걸리기 쉽다","day":"3-4"},{"en":"reflection","ko":"반사, 반영, 심사숙고; 반영","day":"3-4"},{"en":"deviation","ko":"벗어남, 일탈","day":"3-4"},{"en":"marvelous","ko":"놀라운, 믿기 어려운; 멋진","day":"3-4"},{"en":"accomplishment","ko":"업적, 성취","day":"3-4"},{"en":"esteem","ko":"존경, 존경하다, 존중하다","day":"3-4"},{"en":"detect","ko":"(나쁜 짓 등을) 발견하다, 간파하다, 감지하다","day":"3-4"},{"en":"discipline","ko":"규율, 훈련, 학과목, 훈련하다; 징계하다","day":"3-4"},{"en":"tolerance","ko":"관용, 포용력, 내성, 저항력","day":"3-4"},{"en":"attain","ko":"이루다, 획득하다, 도달하다","day":"3-4"},{"en":"zealous","ko":"열광적인, 열심인","day":"3-4"},{"en":"devote","ko":"바치다, 헌신하다","day":"3-4"},{"en":"deprive","ko":"박탈하다, 빼앗다","day":"3-4"},{"en":"complacent","ko":"자기 만족의, 현실에 안주하는","day":"3-4"},{"en":"fulfill","ko":"충족하다, 채우다; 달성하다, 실행하다","day":"3-4"},{"en":"execute","ko":"실행하다, 수행하다, 처형하다","day":"3-4"},{"en":"dread","ko":"두려워하다, 무서워하다","day":"3-4"},{"en":"misconception","ko":"오해, 잘못된 생각","day":"3-4"},{"en":"insightful","ko":"통찰력 있는","day":"3-4"},{"en":"obstalce","ko":"장애, 장애물","day":"3-4"},{"en":"inquisitive","ko":"탐구적인, 꼬치꼬치 캐묻는","day":"3-4"},{"en":"formulate","ko":"표현하다, 형성하다, 공식화하다","day":"3-4"},{"en":"distract","ko":"주의를 딴 데로 돌리다, 산만하게 하다","day":"3-4"},{"en":"determined","ko":"결심한, 단호한","day":"3-4"},{"en":"impair","ko":"손상시키다, 지장을 주다","day":"3-4"},{"en":"annoyance","ko":"성가심, 불쾌감, 곤혹","day":"3-4"},{"en":"reluctant","ko":"마지못한, 주저하는","day":"3-4"},{"en":"embrace","ko":"포옹하다, 기꺼이 받아들이다","day":"3-4"},{"en":"setback","ko":"방해, 좌절","day":"3-4"},{"en":"hold back","ko":"~을 저지하다, ~을 제지하다","day":"3-4"},{"en":"disclose","ko":"노출하다, 공개하다, 폭로하다","day":"3-4"},{"en":"phenomenal","ko":"경이적인; 자연 현상의, 감각적인","day":"3-4"},{"en":"novel","ko":"새로운, 참신한","day":"3-4"},{"en":"pursue","ko":"추구하다; 뒤쫒다","day":"3-4"},{"en":"foster","ko":"기르다, 조성하다, 조장하다","day":"3-4"},{"en":"nasty","ko":"불쾌한, 고약한, 끔찍한","day":"3-4"},{"en":"account for","ko":"~을 설명하다, ~을 차지하다","day":"3-4"},{"en":"trivial","ko":"사소한, 하찮은","day":"3-4"},{"en":"speculate","ko":"추측하다, 고찰하다, 투기하다","day":"3-4"},{"en":"receptive","ko":"수용적인","day":"3-4"},{"en":"outcome","ko":"결과, 성과","day":"3-4"},{"en":"contradictory","ko":"모순되는","day":"3-4"},{"en":"modest","ko":"수수한, 보통의, 겸손한","day":"3-4"},{"en":"assume","ko":"가정하다, 추정하다, 떠맡다, (특질,양상을) 취하다","day":"3-4"},{"en":"overwhelm","ko":"압도하다, 질리게 하다","day":"3-4"},{"en":"give in","ko":"항복하다, 굴복하다, 따르다","day":"3-4"},{"en":"fade away","ko":"점점 희미해지다, 사그라들다","day":"3-4"},{"en":"meditate","ko":"명상하다","day":"3-4"},{"en":"grateful","ko":"감사하는","day":"3-4"},{"en":"prompt","ko":"즉각적인, 촉구하다, 자극하다","day":"3-4"},{"en":"overconfident","ko":"너무 믿는, 자부심이 강한","day":"3-4"},{"en":"aspiration","ko":"열망, 염원, 포부","day":"3-4"},{"en":"fall behind","ko":"뒤쳐지다","day":"3-4"},{"en":"inherent","ko":"본래의, 타고난, 내재하는","day":"3-4"},{"en":"stance","ko":"입장, 태도; (서 있는) 자세","day":"3-4"},{"en":"clutter","ko":"잡동사니, 혼란, 혼란스럽게 하다, 어지르다","day":"3-4"},{"en":"outstanding","ko":"뛰어난, 눈에 띄는","day":"3-4"},{"en":"moderate","ko":"중간의, 적당한, 온건한, 절제하다, 완화하다","day":"3-4"},{"en":"be preoccupied with","ko":"~에 몰두하다, ~에 사로잡히다","day":"3-4"},{"en":"put off","ko":"뒤로 미루다, 연기하다","day":"3-4"},{"en":"bring about","ko":"유발하다, 초래하다","day":"3-4"},{"en":"put oneself in other`s shoes","ko":"타인의 입장이 되어 보다, 역지사지하다","day":"3-4"},{"en":"innate","ko":"타고난, 선천적인","day":"3-4"},{"en":"external","ko":"외부의","day":"3-4"},{"en":"reinforce","ko":"강화하다","day":"3-4"},{"en":"pessimism","ko":"비관주의, 비관적인 생각","day":"3-4"},{"en":"pause","ko":"(이야기의) 중단 휴지, 중단하다, 쉬다","day":"3-4"},{"en":"sabotage","ko":"(고의적으로) 방해하다","day":"3-4"},{"en":"perceive","ko":"인지하다, 인식하다","day":"3-4"},{"en":"trap","ko":"덫, 함정, (궁지에) 가두다, 빠뜨리다","day":"3-4"},{"en":"content","ko":"내용(물), 콘텐츠, 만족한","day":"3-4"},{"en":"implicit","ko":"내포된, 내재적인, 암시된","day":"3-4"},{"en":"discretion","ko":"분별(력), 신중함; 결정권, 자유 재량","day":"3-4"},{"en":"figure out","ko":"알아내다, 이해하다; 계산해 내다","day":"3-4"},{"en":"acquaintance","ko":"아는 사람, 지인","day":"5-6"},{"en":"reside","ko":"살다, 거주하다","day":"5-6"},{"en":"concerted","ko":"합의된, 협동의","day":"5-6"},{"en":"fabric","ko":"천, 직물, 구조, 조직","day":"5-6"},{"en":"bond","ko":"유대감, 결속력","day":"5-6"},{"en":"comprise","ko":"~으로 구성되다, 차지하다","day":"5-6"},{"en":"empathy","ko":"감정 이입, 공감","day":"5-6"},{"en":"multitude","ko":"다수, 군중, 일반 대중","day":"5-6"},{"en":"mercilessly","ko":"무자비하게, 잔인하게","day":"5-6"},{"en":"prejudice","ko":"편견, 편견을 갖게 하다, 해를 끼치다","day":"5-6"},{"en":"respectful","ko":"존경심을 보이는, 공손한, 존중하는","day":"5-6"},{"en":"congestion","ko":"혼잡, 막힘, 충혈","day":"5-6"},{"en":"suspicion","ko":"의심, 협의, (막연한) 느낌","day":"5-6"},{"en":"affluent","ko":"부유한; 풍부한","day":"5-6"},{"en":"quarrel","ko":"말다툼, 다투다, 언쟁을 벌이다","day":"5-6"},{"en":"seizure","ko":"압수, 장악, 체포","day":"5-6"},{"en":"get a big head","ko":"뽐내다, 자만심을 가지다","day":"5-6"},{"en":"plight","ko":"역경, 곤경","day":"5-6"},{"en":"forgiving","ko":"너그러운, 관대한","day":"5-6"},{"en":"poverty","ko":"가난, 빈곤","day":"5-6"},{"en":"interdependence","ko":"상호 의존","day":"5-6"},{"en":"combination","ko":"조합, 결합","day":"5-6"},{"en":"altruism","ko":"이타주의, 이타심","day":"5-6"},{"en":"apathy","ko":"무관심, 무감정","day":"5-6"},{"en":"courtesy","ko":"정중함, 예의","day":"5-6"},{"en":"attribute","ko":"속성, 특징, 원인으로 여기다","day":"5-6"},{"en":"disguise","ko":"변장하다, 위장하다, 숨기다, 위장, 변장","day":"5-6"},{"en":"patriarchal","ko":"가부장제의, 가부장적인","day":"5-6"},{"en":"vary","ko":"서로 다르다, 다양하다, 바꾸다","day":"5-6"},{"en":"landlord","ko":"주인, 임대주","day":"5-6"},{"en":"humiliate","ko":"굴욕을 주다, 창피를 주다","day":"5-6"},{"en":"tenant","ko":"세입자, 소작인, 임차해서[세 들어] 살다; (땅을) 소작하다","day":"5-6"},{"en":"hypocritical","ko":"위선의, 위선적인","day":"5-6"},{"en":"impoverished","ko":"빈곤한, 저하된","day":"5-6"},{"en":"popularity","ko":"인기","day":"5-6"},{"en":"conscience","ko":"양심","day":"5-6"},{"en":"intimate","ko":"친밀한","day":"5-6"},{"en":"proportion","ko":"(전체에서 차지하는) 비율","day":"5-6"},{"en":"reconcile","ko":"조화시키다, 화해시키다","day":"5-6"},{"en":"focal","ko":"중심의, 초점의","day":"5-6"},{"en":"companionship","ko":"교제, 우정","day":"5-6"},{"en":"resistance","ko":"저항, 반대","day":"5-6"},{"en":"accord","ko":"합의, 일치, 일치하다, 조화를 이루다","day":"5-6"},{"en":"privatization","ko":"민영화, 사유화","day":"5-6"},{"en":"reciprocal","ko":"상호 간의","day":"5-6"},{"en":"confine","ko":"경계, 한계, 한정[제한]하다, 가두다","day":"5-6"},{"en":"conflict","ko":"갈등, 충돌, 상충하다, 충돌하다","day":"5-6"},{"en":"charity","ko":"자선 단체, 자선 (사업)","day":"5-6"},{"en":"mutual","ko":"상호 간의, 서로의","day":"5-6"},{"en":"attachment","ko":"애착, 믿음","day":"5-6"},{"en":"candid","ko":"솔직한","day":"5-6"},{"en":"neglect","ko":"방치, 소홀, 방치하다, 도외시하다","day":"5-6"},{"en":"sentiment","ko":"정서, 감정","day":"5-6"},{"en":"plague","ko":"괴롭히다, 고통을 주다, 역병, 흑사병, 재앙","day":"5-6"},{"en":"compromise","ko":"타협, 절충, 타협하다; 위태롭게 하다","day":"5-6"},{"en":"privilege","ko":"특권, 특혜, 특권[특혜]를 주다","day":"5-6"},{"en":"open up","ko":"마음을 터놓다","day":"5-6"},{"en":"corruption","ko":"부패, 오염, 타락","day":"5-6"},{"en":"encounter","ko":"만남, 맞닥뜨리다, 접하다","day":"5-6"},{"en":"opposed","ko":"~에 반대하는","day":"5-6"},{"en":"familiarity","ko":"친숙함, 낯익음","day":"5-6"},{"en":"stand a chance","ko":"가능성이 있다","day":"5-6"},{"en":"assimilate","ko":"(완전히) 이해하다, 흡수하다, 동화시키다, 동화되다","day":"5-6"},{"en":"concurrent","ko":"공존하는, 동시(발생)의","day":"5-6"},{"en":"refresh","ko":"상쾌하게 하다, 새롭게 하다","day":"5-6"},{"en":"enormous","ko":"막대한, 거대한","day":"5-6"},{"en":"interpersonal","ko":"대인 관계의, 인간 사이에 일어나는","day":"5-6"},{"en":"populous","ko":"인구가 많은","day":"5-6"},{"en":"come across","ko":"이해되다, 인상을 주다","day":"5-6"},{"en":"struggle","ko":"투쟁하다, 몸부림치다, 투쟁, 분투","day":"5-6"},{"en":"acknowledge","ko":"인정하다","day":"5-6"},{"en":"govern","ko":"지배하다, 통치하다","day":"5-6"},{"en":"take the initiative","ko":"솔선하다, 주도하다","day":"5-6"},{"en":"stagnant","ko":"(물∙공기가) 고여 있는; 침체된","day":"5-6"},{"en":"correspond","ko":"일치하다, 상응하다, 서신을 주고받다","day":"5-6"},{"en":"be prone to","ko":"~하기 쉽다","day":"5-6"},{"en":"dispute","ko":"논쟁, 분쟁, 논쟁하다, 반박하다","day":"5-6"},{"en":"tangibly","ko":"명백히, 만져서 알 수 있게","day":"5-6"},{"en":"court","ko":"~의 환심을 사려고 하다","day":"5-6"},{"en":"coordination","ko":"조화, 협동","day":"5-6"},{"en":"apply","ko":"신청하다, 지원하다(for), 적용하다, 쓰다(to)","day":"7-8"},{"en":"polarize","ko":"양극화되다, 양극화를 초래하다","day":"7-8"},{"en":"requirement","ko":"필요, 필요조건","day":"7-8"},{"en":"transition","ko":"이행, 전환","day":"7-8"},{"en":"inexperienced","ko":"경험이 부족한, 미숙한","day":"7-8"},{"en":"desperate","ko":"필사적인, 적극적인","day":"7-8"},{"en":"humble","ko":"겸손한, 초라한","day":"7-8"},{"en":"nuts and bolts","ko":"기본, 요점","day":"7-8"},{"en":"reputation","ko":"명성, 평판","day":"7-8"},{"en":"implement","ko":"시행하다, 이행하다","day":"7-8"},{"en":"resign","ko":"사임하다, 물러나다; 포기하다","day":"7-8"},{"en":"overload","ko":"짐을 너무 많이 싣다; 과부하에 걸리게 하다, 과부하","day":"7-8"},{"en":"vacant position","ko":"공석인 자리","day":"7-8"},{"en":"protest","ko":"항의, 이의를 제기하다 항의하다, 주장하다","day":"7-8"},{"en":"substitution","ko":"대체, 대리(인), 대용(품)","day":"7-8"},{"en":"compensate","ko":"보상하다, 배상하다, 상쇄하다","day":"7-8"},{"en":"personnel","ko":"인원, 직원들","day":"7-8"},{"en":"underlying","ko":"근본적인, 기저에 깔려 있는","day":"7-8"},{"en":"self-motivated","ko":"스스로 동기를 부여하는","day":"7-8"},{"en":"drastic","ko":"철저한, 과감한, 격렬한, 급격한","day":"7-8"},{"en":"retirement","ko":"은퇴, 퇴직","day":"7-8"},{"en":"bribe","ko":"뇌물, 뇌물을 주다, 매수하다","day":"7-8"},{"en":"prospective","ko":"장래의, 유망한, 곧 있을, 다가오는","day":"7-8"},{"en":"fall apart","ko":"부서지다","day":"7-8"},{"en":"occupational","ko":"직업의, 직업과 관련된","day":"7-8"},{"en":"starvation","ko":"기아, 굶주림","day":"7-8"},{"en":"vocational","ko":"직업상의","day":"7-8"},{"en":"with regard to","ko":"~에 관련하여, ~에 대하여","day":"7-8"},{"en":"on-site","ko":"현장의, 현지의","day":"7-8"},{"en":"pros and cons","ko":"찬반양론, 장단점","day":"7-8"},{"en":"multitask","ko":"다중 작업을 하다, 동시에 여러 일을 처리하다","day":"7-8"},{"en":"correlation","ko":"연관성, 상관관계","day":"7-8"},{"en":"obligate","ko":"의무를 지우다","day":"7-8"},{"en":"apprehension","ko":"우려, 불안, 체포","day":"7-8"},{"en":"dedicated","ko":"헌신적인, 전념하는; 전용의","day":"7-8"},{"en":"hostility","ko":"적의, 적대감","day":"7-8"},{"en":"qualified","ko":"자격을 갖춘, 적격인","day":"7-8"},{"en":"trigger","ko":"촉발하다, 유발하다, 방아쇠, 계기","day":"7-8"},{"en":"designate","ko":"지정하다, 지명하다","day":"7-8"},{"en":"hinder","ko":"방해하다, ~을 못하게 하다","day":"7-8"},{"en":"subsidiary","ko":"보조의, 종속적인, 자회사의, 자회사","day":"7-8"},{"en":"marginalize","ko":"(사회적으로) 과소평가하다, 하찮은 존재로 만들다","day":"7-8"},{"en":"on behalf of","ko":"~을 대신하여, ~을 대표하여, ~을 위해서","day":"7-8"},{"en":"objection","ko":"이의, 반대","day":"7-8"},{"en":"commend","ko":"칭찬하다, 추천하다, 권하다","day":"7-8"},{"en":"justify","ko":"정당화하다, 해명하다","day":"7-8"},{"en":"certification","ko":"증명서","day":"7-8"},{"en":"stimulus","ko":"자극, 자극제","day":"7-8"},{"en":"undertake","ko":"(일∙책임 등을) 맡다; 시작하다, 약속하다","day":"7-8"},{"en":"attainment","ko":"성과, 성취","day":"7-8"},{"en":"indignity","ko":"수모, 모욕, 치욕","day":"7-8"},{"en":"presume","ko":"추정하다, 간주하다","day":"7-8"},{"en":"self-esteem","ko":"자존감","day":"7-8"},{"en":"unemployment","ko":"실업(률), 실직 상태","day":"7-8"},{"en":"embark on","ko":"~에 착수하다","day":"7-8"},{"en":"defense","ko":"방어, 수비","day":"7-8"},{"en":"resident","ko":"거주하는, 상주하는, 거주자, 주민","day":"7-8"},{"en":"surmount","ko":"극복하다","day":"7-8"},{"en":"unstable","ko":"불안정한","day":"7-8"},{"en":"demonstrate","ko":"입증하다, 보여 주다","day":"7-8"},{"en":"alienated","ko":"(사회로부터) 멀어진, 고립된","day":"7-8"},{"en":"run the risk of","ko":"~의 위험을 무릅쓰다","day":"7-8"},{"en":"ultimate","ko":"궁극적인, 최후의","day":"7-8"},{"en":"phase","ko":"단계, 시기, 국면","day":"7-8"},{"en":"compile","ko":"엮다, 편집하다","day":"7-8"},{"en":"opposition","ko":"반대, 대립, 상대팀, 야당","day":"7-8"},{"en":"consideration","ko":"숙고, 고려 사항","day":"7-8"},{"en":"plagiarism","ko":"표절","day":"7-8"},{"en":"eminent","ko":"저명한, 탁월한","day":"7-8"},{"en":"circumstance","ko":"상황, 환경","day":"7-8"},{"en":"in charge of","ko":"~을 담당하여, ~을 맡아서","day":"7-8"},{"en":"bizarre","ko":"이상한, 특이한","day":"7-8"},{"en":"distressed","ko":"괴로워하는; 아파하는","day":"7-8"},{"en":"inhibit","ko":"억제하다, 방해하다","day":"7-8"},{"en":"practitioner","ko":"실무자, 개업 의사[변호사]","day":"7-8"},{"en":"individual","ko":"각각의, 개개의, 개인","day":"7-8"},{"en":"stereotype","ko":"고정관념, 정형화하다","day":"7-8"},{"en":"intrude","ko":"침범[침입]하다, 강요하다","day":"7-8"},{"en":"obscure","ko":"무명의; 모호한","day":"7-8"},{"en":"integrate","ko":"통합시키다, 통합되다","day":"7-8"},{"en":"coverage","ko":"보도, 범위; (보험에 의한) 보장","day":"9-10"},{"en":"anthropology","ko":"인류학","day":"9-10"},{"en":"commentary","ko":"실황 방송, 논평, 비평","day":"9-10"},{"en":"barbarian","ko":"야만인","day":"9-10"},{"en":"station","ko":"역, 방송국, 방송(프로)","day":"9-10"},{"en":"exotic","ko":"외국의, 이국적인","day":"9-10"},{"en":"sequence","ko":"연속적인 사건들, 순서, 장면","day":"9-10"},{"en":"minority","ko":"소수, 소외 계층","day":"9-10"},{"en":"billboard","ko":"광고판, 게시판","day":"9-10"},{"en":"communal","ko":"공동의, 공동 사회의","day":"9-10"},{"en":"circulation","ko":"(혈액) 순환, 유통, 발행 부수","day":"9-10"},{"en":"tardy","ko":"늦은, 느린","day":"9-10"},{"en":"boycott","ko":"보이콧, 거부 운동, (구매∙사용을) 거부하다, 보이콧하다","day":"9-10"},{"en":"aristocracy","ko":"귀족 (계층)","day":"9-10"},{"en":"interfere with","ko":"~을 방해하다, ~에 지장을 주다","day":"9-10"},{"en":"elaborate","ko":"공들여 만든, 정교한, 상세히 설명하다","day":"9-10"},{"en":"mediate","ko":"조정하다, 중재하다, 타결을 보다","day":"9-10"},{"en":"mythical","ko":"신화의, 신화적인","day":"9-10"},{"en":"influential","ko":"영향력 있는; 유력한","day":"9-10"},{"en":"explicable","ko":"설명되는, 납득이 가는","day":"9-10"},{"en":"unprecedented","ko":"전례가 없는","day":"9-10"},{"en":"disrupt","ko":"붕괴시키다, 혼란케 하다","day":"9-10"},{"en":"overreport","ko":"과장 보고[보도]하다","day":"9-10"},{"en":"admire","ko":"존경하다, 동경하다, 감탄하며 바라보다","day":"9-10"},{"en":"overly","ko":"지나치게, 너무","day":"9-10"},{"en":"fundamental","ko":"근본적인, 필수적인","day":"9-10"},{"en":"highlight","ko":"강조하다, 눈에 띄게 하다, 하이라이트, 가장 좋은 부분","day":"9-10"},{"en":"overlap","ko":"겹치는 부분, 겹치다, 중복되다","day":"9-10"},{"en":"manipulative","ko":"조작의; 조종하는","day":"9-10"},{"en":"admission","ko":"입장, 가입, 입학","day":"9-10"},{"en":"reveal","ko":"드러내다, 밝히다, 폭로하다","day":"9-10"},{"en":"domesticate","ko":"사육하다, 가축화하다, 가정적이 되게 하다","day":"9-10"},{"en":"identify","ko":"확인하다, 발견하다","day":"9-10"},{"en":"stroll","ko":"산책, 거닐다, 산책하다","day":"9-10"},{"en":"obviously","ko":"확실히, 분명히","day":"9-10"},{"en":"venture","ko":"모헙, 벤처(사업), (위험을 무릅쓰고) 하다","day":"9-10"},{"en":"strip","ko":"(신문 등의) 연재만화, 가느다란 조각, 벗기다, 떼어내다","day":"9-10"},{"en":"incomparable","ko":"비교할 수 없는, 비할 데 없는","day":"9-10"},{"en":"attract","ko":"마음을 끌다, 끌어들이다","day":"9-10"},{"en":"savage","ko":"야만적인, 미개한, 사나운, 맹렬한","day":"9-10"},{"en":"subscribe","ko":"(신문 등을) 구독하다","day":"9-10"},{"en":"collective","ko":"집단의, 단체의, 공동의, 공통의","day":"9-10"},{"en":"informative","ko":"유익한, 유용한 정보를 주는","day":"9-10"},{"en":"heritage","ko":"(국가∙사회의) 유산","day":"9-10"},{"en":"public relations","ko":"홍보, 대민 관계","day":"9-10"},{"en":"clan","ko":"씨족, 집단","day":"9-10"},{"en":"pirate","ko":"해적, 저작권 침해자, 저작권을 침해하다, 불법 복제하다","day":"9-10"},{"en":"ethnic","ko":"민족의, 인종의","day":"9-10"},{"en":"prominently","ko":"두드러지게, 현저히","day":"9-10"},{"en":"indigenous","ko":"원산의, 토착의","day":"9-10"},{"en":"reminder","ko":"상기시키는 것, 떠올리게 해주는 것","day":"9-10"},{"en":"tolerant","ko":"관대한, 내성이 있는, 잘 견디는","day":"9-10"},{"en":"issue","ko":"쟁점, 문제점, 발행(물), (잡지∙신문 등의) 호","day":"9-10"},{"en":"legendary","ko":"전설적인, 전설에 나오는","day":"9-10"},{"en":"anchor","ko":"앵커, 닻, 정신적 지주, 닻을 내리다, 정박하다","day":"9-10"},{"en":"awe","ko":"경외심, 경외심을 갖게 하다","day":"9-10"},{"en":"restrain","ko":"저지하다, 억제하다","day":"9-10"},{"en":"convetional","ko":"전통적인, 종래의, 재래식의","day":"9-10"},{"en":"linkage","ko":"연결, 결합","day":"9-10"},{"en":"discrimination","ko":"차별","day":"9-10"},{"en":"publicity","ko":"매스컴[언론]의 관심, 광고, 홍보","day":"9-10"},{"en":"forage","ko":"(식량 등을) 찾아다니다, (소∙말의) 사료","day":"9-10"},{"en":"knock off","ko":"중단하다","day":"9-10"},{"en":"pervade","ko":"스며들다, 배어들다","day":"9-10"},{"en":"contribute","ko":"기부하다, 기여하다, 기고하다","day":"9-10"},{"en":"represent","ko":"의미하다, 나타내다, 대표하다","day":"9-10"},{"en":"profile","ko":"옆모습; 개요; 프로필, 개요를 작성하다","day":"9-10"},{"en":"embody","ko":"구체화하다, 구현하다","day":"9-10"},{"en":"keep up with","ko":"~을 유지하다, ~을 알게 되다, ~을 따라잡다","day":"9-10"},{"en":"aboriginal","ko":"원주민의, 토착의","day":"9-10"},{"en":"plot","ko":"줄거리; 음모, 모의하다","day":"9-10"},{"en":"perspective","ko":"관점, 시각","day":"9-10"},{"en":"publication","ko":"출판, 발행; 출판물; 발표","day":"9-10"},{"en":"thriving","ko":"번영하는, 번성하는","day":"9-10"},{"en":"rationalize","ko":"합리화하다","day":"9-10"},{"en":"sacrificial","ko":"제물로 바치는, 희생의","day":"9-10"},{"en":"admit","ko":"인정하다, 자백하다","day":"9-10"},{"en":"primitive","ko":"원시의, 원시적인, 원시 사회의","day":"9-10"},{"en":"on a daily basis","ko":"매일","day":"9-10"},{"en":"consensus","ko":"의견 일치, 합의","day":"9-10"},{"en":"urge","ko":"강한 욕구, 충동, 강력히 촉구하다, 재촉하다","day":"11-12"},{"en":"nurture","ko":"양육, 교육, 양육하다, 육성하다","day":"11-12"},{"en":"recall","ko":"기억하다, 회상하다, (제품을) 회수하다, 리콜하다","day":"11-12"},{"en":"mentor","ko":"멘토, 좋은 조언자","day":"11-12"},{"en":"intuition","ko":"직관, 직감","day":"11-12"},{"en":"reform","ko":"개혁, 개정, 개혁하다, 개량하다","day":"11-12"},{"en":"recognize","ko":"인지하다, 알아차리다; 인정하다","day":"11-12"},{"en":"range","ko":"다양성, 범위, 구역, 다양하다, (범위가 ~에서 …에) 이르다","day":"11-12"},{"en":"rational","ko":"이성적인, 합리적인","day":"11-12"},{"en":"reference","ko":"참고, 참조, 언급, 추천서","day":"11-12"},{"en":"obsessed","ko":"사로잡힌, 집착하는","day":"11-12"},{"en":"assign","ko":"할당하다, 부과하다, 임명하다, 지정하다","day":"11-12"},{"en":"rage","ko":"(격렬한) 분노, 맹위를 떨치다, 몹시 화를 내다","day":"11-12"},{"en":"curriculum","ko":"교육과정, 커리큘럼","day":"11-12"},{"en":"vulnerable","ko":"취약한, 상처 받기 쉬운","day":"11-12"},{"en":"capacity","ko":"용량, 수용력, 능력, 재능","day":"11-12"},{"en":"solitary","ko":"외로운, 혼자의, 고독한","day":"11-12"},{"en":"reward","ko":"보상, 보답, 보상하다, 보답하다","day":"11-12"},{"en":"compassion","ko":"연민, 동정심","day":"11-12"},{"en":"instruction","ko":"설명; 지시, 가르침, 지도","day":"11-12"},{"en":"envision","ko":"마음속에 그리다, 구상하다, 상상하다","day":"11-12"},{"en":"strive","ko":"노력하다, 힘쓰다","day":"11-12"},{"en":"invaluable","ko":"더없이 소중한","day":"11-12"},{"en":"persuasive","ko":"설득력 있는","day":"11-12"},{"en":"loyalty","ko":"충성, 성실","day":"11-12"},{"en":"prestigious","ko":"일류의, 고급의, 명망 있는","day":"11-12"},{"en":"tempt","ko":"유혹하다, 부추기다, 유도하다, 설득하다","day":"11-12"},{"en":"explore","ko":"탐구하다; 탐험하다","day":"11-12"},{"en":"concerned","ko":"우려하는, 걱정하는, 관심이 있는","day":"11-12"},{"en":"portray","ko":"묘사하다, 그리다, 나타내다","day":"11-12"},{"en":"skeptical","ko":"회의적인, 의심이 많은","day":"11-12"},{"en":"diversity","ko":"다양성, 범위, 구역, 다양하다, (범위가 ~에서 …에) 이르다","day":"11-12"},{"en":"aggressive","ko":"공격적인, 대단히 적극적인","day":"11-12"},{"en":"suppress","ko":"억누르다, 억제하다, 금지하다, 숨기다","day":"11-12"},{"en":"surge","ko":"치솟음, 급상승, 격동, 밀려오다, 격동하다, 급등하다","day":"11-12"},{"en":"gauge","ko":"판단하다, 측정하다, (판단∙평가 등의) 기준","day":"11-12"},{"en":"superstitious","ko":"미신을 믿는","day":"11-12"},{"en":"withhold","ko":"억누르다, 억제하다, 보류하다","day":"11-12"},{"en":"commitment","ko":"전념, 헌신, 헌신적 노력","day":"11-12"},{"en":"norm","ko":"표준, 기준, 규범","day":"11-12"},{"en":"introspective","ko":"자기 성찰적인, 내성적인","day":"11-12"},{"en":"undergraduate","ko":"대학생, 학부의, 대학생의","day":"11-12"},{"en":"unconsciousness","ko":"무의식, 의식 불명","day":"11-12"},{"en":"complementary","ko":"상호 보완적인, 보충하는","day":"11-12"},{"en":"straightforward","ko":"간단한, 쉬운, 직선적인, 솔직한","day":"11-12"},{"en":"adolescent","ko":"청소년기의, 청소년","day":"11-12"},{"en":"outlet","ko":"(감정 등의) 발산 수단, 배출구, 직판점","day":"11-12"},{"en":"intensive","ko":"집중적인; 철두철미한; 집약적인","day":"11-12"},{"en":"therapeutic","ko":"치료가 되는, 치료 효과가 있는","day":"11-12"},{"en":"potential","ko":"가능성, 잠재력, 잠재적인","day":"11-12"},{"en":"extrinsic","ko":"외적인[외부의], 비본질적인","day":"11-12"},{"en":"rear","ko":"뒤, 뒷부분, 뒷부분의 / 기르다, 양육하다","day":"11-12"},{"en":"destine","ko":"운명 짓다, 예정하다","day":"11-12"},{"en":"well-rounded","ko":"균형이 잡힌, 다재다능한, 다방면에 걸친","day":"11-12"},{"en":"inflict","ko":"(타격∙고통 등을) 입히다, 주다","day":"11-12"},{"en":"remedial","ko":"치료하는, 교정하는, 개선적인, 보충하는","day":"11-12"},{"en":"compulsive","ko":"강박 관념에 사로잡힌, 강박증의, 상습적인","day":"11-12"},{"en":"dominate","ko":"지배하다, 주도하다; 우세하다, 우위를 점하다","day":"11-12"},{"en":"drive","ko":"욕구, 충동; 추진력, 몰아붙이다, ~하게 만들다","day":"11-12"},{"en":"endow","ko":"기부하다, ~에게 부여하다","day":"11-12"},{"en":"repress","ko":"억압하다, 압제하다","day":"11-12"},{"en":"academic","ko":"학문의, 학교의, 학구적인","day":"11-12"},{"en":"elicit","ko":"끌어내다, 유도하다","day":"11-12"},{"en":"be bound to","ko":"반드시 ~하다, ~하려고 마음먹다","day":"11-12"},{"en":"fallacy","ko":"오류, 잘못된 생각","day":"11-12"},{"en":"affection","ko":"애정, 보살핌","day":"11-12"},{"en":"initiation","ko":"시작, 개시; 가입, 입회","day":"11-12"},{"en":"integral","ko":"필수의, 완전한, 통합된","day":"11-12"},{"en":"consistency","ko":"일관성, 한결같음","day":"11-12"},{"en":"observation","ko":"관찰, 감시; 의견","day":"11-12"},{"en":"presumably","ko":"아마도, 짐작컨대","day":"11-12"},{"en":"coherent","ko":"일관성 있는, 논리 정연한","day":"11-12"},{"en":"induce","ko":"권유하다; 유도하다","day":"11-12"},{"en":"deliberately","ko":"의도적으로, 신중하게","day":"11-12"},{"en":"compelling","ko":"강렬한, 설득력 있는","day":"11-12"},{"en":"rigorous","ko":"엄격한, 철저한; 혹독한","day":"11-12"},{"en":"vigor","ko":"활기, 정력","day":"11-12"},{"en":"at the expense of","ko":"~을 희생하면서","day":"11-12"},{"en":"in vain","ko":"헛되이","day":"11-12"},{"en":"indispensable","ko":"없어서는 안 되는, 필수적인","day":"11-12"},{"en":"deduce","ko":"추론하다, 추정하다, 연역하다","day":"13-14"},{"en":"ruin","ko":"붕괴, 몰락, 파괴, 파멸, 파괴시키다","day":"13-14"},{"en":"preacher","ko":"전도사, 목사, 설교자","day":"13-14"},{"en":"downfall","ko":"몰락, 붕괴","day":"13-14"},{"en":"secular","ko":"세속적인, 비종교적인","day":"13-14"},{"en":"hierarchy","ko":"계급, 계층, 위상, 위아래","day":"13-14"},{"en":"altar","ko":"제단","day":"13-14"},{"en":"enlightenment","ko":"계발, 계몽","day":"13-14"},{"en":"profane","ko":"신성 모독적인, 세속적인, 모독하다","day":"13-14"},{"en":"regime","ko":"정권, 제도, 체제","day":"13-14"},{"en":"monastery","ko":"수도원","day":"13-14"},{"en":"noble","ko":"귀족의, 고귀한","day":"13-14"},{"en":"pilgrim","ko":"순례자","day":"13-14"},{"en":"imperialism","ko":"제국주의","day":"13-14"},{"en":"spiritual","ko":"정신적인, 종교적인","day":"13-14"},{"en":"description","ko":"서술, 묘사, 설명","day":"13-14"},{"en":"divine","ko":"신의, 신성한, 성스러운","day":"13-14"},{"en":"ancestor","ko":"조상, 선조","day":"13-14"},{"en":"temporal","ko":"현세의, 속세의, 시간의","day":"13-14"},{"en":"overtake","ko":"앞지르다, 추월하다","day":"13-14"},{"en":"sacred","ko":"신성한, 종교적인","day":"13-14"},{"en":"artifact","ko":"유물, 인공물, 공예품","day":"13-14"},{"en":"profound","ko":"깊은, 심오한","day":"13-14"},{"en":"remains","ko":"잔해, 잔재물, 유적, 유해","day":"13-14"},{"en":"prophet","ko":"예언자, 선지자","day":"13-14"},{"en":"well-preserved","ko":"잘 보존된","day":"13-14"},{"en":"persecution","ko":"(종교적) 박해, 학대","day":"13-14"},{"en":"innovate","ko":"혁신하다, 쇄신하다; 도입하다","day":"13-14"},{"en":"oppressive","ko":"억압하는, 답답한","day":"13-14"},{"en":"era","ko":"시대","day":"13-14"},{"en":"self-interest","ko":"이기심, 이기주의, 사리사욕","day":"13-14"},{"en":"alliance","ko":"동맹, 연합","day":"13-14"},{"en":"vicious","ko":"잔인한, 악덕의, 악의적인","day":"13-14"},{"en":"inscribe","ko":"새기다; 헌정하다","day":"13-14"},{"en":"demoralize","ko":"사기를 꺾다, 의기소침하게 만들다","day":"13-14"},{"en":"proclaim","ko":"선언하다, 분명히 보여 주다","day":"13-14"},{"en":"worship","ko":"예배, 숭배, 예배하다, 숭배하다","day":"13-14"},{"en":"milestone","ko":"중요한[획기적인] 단계, 사건, 이정표","day":"13-14"},{"en":"analogy","ko":"유사점, 유추","day":"13-14"},{"en":"tendency","ko":"경향, 추세, 성향, 기질","day":"13-14"},{"en":"humanism","ko":"인문주의, 인본주의","day":"13-14"},{"en":"combat","ko":"전투, 싸움, 싸우다","day":"13-14"},{"en":"philosopher","ko":"철학자","day":"13-14"},{"en":"brutal","ko":"잔인한, 악랄한","day":"13-14"},{"en":"proposition","ko":"제안, 명제, 진술","day":"13-14"},{"en":"subordinate","ko":"종속된, 부차적인, 부하, 하급자","day":"13-14"},{"en":"ritual","ko":"의식, 의식의, 의례적인","day":"13-14"},{"en":"conquer","ko":"정복하다, 이기다","day":"13-14"},{"en":"contemplate","ko":"깊이 생각하다, 숙고하다, 응시하다","day":"13-14"},{"en":"liberate","ko":"자유롭게 하다, 해방시키다","day":"13-14"},{"en":"virtue","ko":"선, 선행, 미덕, 덕목","day":"13-14"},{"en":"rebel","ko":"반란을 이으키다, 저항하다, 반역자","day":"13-14"},{"en":"solitude","ko":"고독","day":"13-14"},{"en":"turmoil","ko":"혼란, 소란","day":"13-14"},{"en":"empirical","ko":"경험적인, 경험주의의","day":"13-14"},{"en":"loom","ko":"흐릿하게 모습을 드러내다","day":"13-14"},{"en":"permanent","ko":"영구적인, 영원한, 불변의","day":"13-14"},{"en":"groundbreaking","ko":"획기적인, 신기원을 이룬","day":"13-14"},{"en":"temple","ko":"사원, 신전","day":"13-14"},{"en":"prehistoric","ko":"선사시대의, 유사 이전의","day":"13-14"},{"en":"conscious","ko":"의식하는, 자각하는, 의식적인, 의도적인","day":"13-14"},{"en":"slavery","ko":"노예 신분, 노예 제도","day":"13-14"},{"en":"intelligible","ko":"이해할 수 있는","day":"13-14"},{"en":"collapse","ko":"붕괴되다, 무너지다, 실패, 붕괴","day":"13-14"},{"en":"unquestionable","ko":"의심할 바 없는, 확실한","day":"13-14"},{"en":"revolution","ko":"혁명, (행성의) 공전","day":"13-14"},{"en":"contempt","ko":"경멸, 멸시","day":"13-14"},{"en":"valiant","ko":"용맹한; 단호한","day":"13-14"},{"en":"take a stand","ko":"입장을 취하다","day":"13-14"},{"en":"massacre","ko":"대규모 살상, 대학살, 학살하다","day":"13-14"},{"en":"intrinsically","ko":"본질적으로","day":"13-14"},{"en":"cemetery","ko":"공동묘지","day":"13-14"},{"en":"intellectual","ko":"지적인, 교육을 많이 받은, 지식인","day":"13-14"},{"en":"aftermath","ko":"(전쟁∙사고 등의) 여파, 후유증","day":"13-14"},{"en":"abortion","ko":"낙태, 임신 중절","day":"13-14"},{"en":"ally","ko":"동맹국, 협력자, 동맹하다, 지지하다","day":"13-14"},{"en":"doctrine","ko":"교리, 학설, 가르침","day":"13-14"},{"en":"medieval","ko":"중세의","day":"13-14"},{"en":"motivate","ko":"동기를 부여하다, 원인이 되다","day":"13-14"},{"en":"troop","ko":"병력, 군대, 부대, 무리","day":"13-14"},{"en":"imaginative","ko":"창의적인, 상상력이 풍부한","day":"15-16"},{"en":"linguistic","ko":"언어의, 언어학의","day":"15-16"},{"en":"patron","ko":"후원자, 고객","day":"15-16"},{"en":"verbal","ko":"언어[말]의, 구두의","day":"15-16"},{"en":"improvisation","ko":"즉흥적 행위, 즉흥 연주","day":"15-16"},{"en":"clarify","ko":"명확하게 하다, 분명히 말하다","day":"15-16"},{"en":"aesthetic","ko":"심미적인, 미적 특질, 미학","day":"15-16"},{"en":"translate","ko":"번역하다, (다른 언어로) 옮기다","day":"15-16"},{"en":"naïve","ko":"순진한, (예술이) 세련되지 않은, 소박한","day":"15-16"},{"en":"articulate","ko":"분명히 표현하다, 또렷이 발음하다, 명료한","day":"15-16"},{"en":"compliment","ko":"칭찬, 찬사, 칭찬하다","day":"15-16"},{"en":"oversimplify","ko":"지나치게 단순화하다","day":"15-16"},{"en":"splendid","ko":"화려한, 멋진","day":"15-16"},{"en":"revise","ko":"수정하다, 개정하다; (의견을) 바꾸다","day":"15-16"},{"en":"craftsman","ko":"장인, 기능공, 숙련공","day":"15-16"},{"en":"interpret","ko":"해석하다, 이해하다, 통역하다","day":"15-16"},{"en":"gracious","ko":"자애로운, 우아한, 품위 있는","day":"15-16"},{"en":"define","ko":"정의하다, 규정하다","day":"15-16"},{"en":"up-to-date","ko":"최신의","day":"15-16"},{"en":"interpose","ko":"(대화중에)덧붙이다,끼어들다, (사이에) 두다","day":"15-16"},{"en":"emblem","ko":"상징, 표상","day":"15-16"},{"en":"exaggerate","ko":"과장하다","day":"15-16"},{"en":"well-crafted","ko":"정교하게 잘 만들어진","day":"15-16"},{"en":"affirmation","ko":"확인, 확언, 단언, 긍정","day":"15-16"},{"en":"distortion","ko":"찌그러짐, 왜곡","day":"15-16"},{"en":"eloquent","ko":"웅변의, 유창한, 느낌이나 의미를 명확히 보여 주는","day":"15-16"},{"en":"artifice","ko":"기술, 기교, 책략","day":"15-16"},{"en":"fluency","ko":"유창성, 능숙도","day":"15-16"},{"en":"twisted","ko":"뒤틀린, 일그러진","day":"15-16"},{"en":"relevance","ko":"관련, 적절, 타당성","day":"15-16"},{"en":"inspiration","ko":"영감, 자극, 원천","day":"15-16"},{"en":"commonplace","ko":"평범한, 흔한, 평범한 것","day":"15-16"},{"en":"masterpiece","ko":"걸작, 명작","day":"15-16"},{"en":"synonym","ko":"동의어, 유의어","day":"15-16"},{"en":"underappreciate","ko":"과소평가하다, 저평가하다","day":"15-16"},{"en":"term","ko":"말, 용어, 학기, 기간, 임기, 관계, (친밀한) 사이","day":"15-16"},{"en":"adorn","ko":"꾸미다, 장식하다","day":"15-16"},{"en":"punctuation","ko":"구두점, 구두법","day":"15-16"},{"en":"priceless","ko":"값을 매길 수 없는, 대단히 귀중한","day":"15-16"},{"en":"pitch","ko":"음의 높이, 정점, 최고조","day":"15-16"},{"en":"brushwork","ko":"(화가의) 화법, 붓놀림","day":"15-16"},{"en":"premise","ko":"전제","day":"15-16"},{"en":"immediacy","ko":"신속성; 속도, 직접성","day":"15-16"},{"en":"phrase","ko":"구, 어구","day":"15-16"},{"en":"propel","ko":"나아가게 하다, 추진하다, 몰고 가다","day":"15-16"},{"en":"omit","ko":"생략하다; 빠뜨리다, 누락하다","day":"15-16"},{"en":"note","ko":"음, 음표","day":"15-16"},{"en":"literal","ko":"문자 그대로의, 평범한","day":"15-16"},{"en":"state-of-the-art","ko":"최신식의, 최첨단의","day":"15-16"},{"en":"bilingual","ko":"두 개의 언어를 사용하는, 두 개 국어를 구사하는 사람","day":"15-16"},{"en":"contemporary","ko":"현대의, 동시대의, 동시대 사람","day":"15-16"},{"en":"utter","ko":"완전한, 전적인, 발언하다, 입 밖에 내다","day":"15-16"},{"en":"compose","ko":"구성하다, 작곡하다","day":"15-16"},{"en":"dialect","ko":"사투리, 방언","day":"15-16"},{"en":"statue","ko":"조각상","day":"15-16"},{"en":"illiteracy","ko":"문맹; 무식","day":"15-16"},{"en":"replica","ko":"복제품, 모형","day":"15-16"},{"en":"controversial","ko":"논쟁의, 논쟁의 여지가 있는","day":"15-16"},{"en":"geometrical","ko":"기하학의, 기하학적인","day":"15-16"},{"en":"ambiguous","ko":"애매한, 여러 가지로 해석할 수 있는, 분명치 않은","day":"15-16"},{"en":"invisibility","ko":"눈에 보이지 않음","day":"15-16"},{"en":"plausible","ko":"타당한, 그럴듯한","day":"15-16"},{"en":"criticize","ko":"비판하다, 비평하다","day":"15-16"},{"en":"sophisticated","ko":"정교한, 고상한, 교양 있는","day":"15-16"},{"en":"marble","ko":"대리석, 구슬","day":"15-16"},{"en":"vague","ko":"희미한, 모호한, 애매한","day":"15-16"},{"en":"treasury","ko":"국고, 금고, 보고, 재무부","day":"15-16"},{"en":"polished","ko":"윤이 나는, 다듬어진, 세련된","day":"15-16"},{"en":"convey","ko":"전달하다, 알리다","day":"15-16"},{"en":"reconstruct","ko":"재구성하다, 재건[복원]하다","day":"15-16"},{"en":"inborn","ko":"타고난, 선천적인","day":"15-16"},{"en":"confer","ko":"부여[수여]하다, 상의하다","day":"15-16"},{"en":"cast","ko":"(연극이나 영화의) 출연진, 주조하다, 배역을 정하다","day":"15-16"},{"en":"narrative","ko":"묘사, 서술, 이야기의","day":"15-16"},{"en":"repertoire","ko":"레퍼토리, (공연) 목록","day":"15-16"},{"en":"consistent","ko":"일관된, 지속적인","day":"15-16"},{"en":"counterfeit","ko":"위조의, 모조의","day":"15-16"},{"en":"evoke","ko":"불러일으키다, 환기시키다","day":"15-16"},{"en":"grotesque","ko":"기이한, 말도 안 되는","day":"15-16"},{"en":"derive","ko":"~에서 비롯되다, 끌어내다, 얻다","day":"15-16"},{"en":"character","ko":"성격, 기질, 특징, (책∙영화 등의) 등장 인물","day":"17-18"},{"en":"bureaucracy","ko":"관료제, 관료주의","day":"17-18"},{"en":"feature","ko":"특징, 특색, 특색으로 삼다","day":"17-18"},{"en":"appoint","ko":"지정하다, 임명하다, (시간∙장소 등을) 정하다","day":"17-18"},{"en":"clue","ko":"단서, 실마리","day":"17-18"},{"en":"presidency","ko":"대통력직, 대통령의 임기","day":"17-18"},{"en":"literary","ko":"문학의, 문학적인","day":"17-18"},{"en":"diplomatic","ko":"외교의, 외교적 수완이 있는","day":"17-18"},{"en":"anecdote","ko":"일화, 비사","day":"17-18"},{"en":"council","ko":"의회, 심의회","day":"17-18"},{"en":"dramatic","ko":"극적인, 인상적인, 희곡의","day":"17-18"},{"en":"minister","ko":"장관, 각료","day":"17-18"},{"en":"comprehensive","ko":"포괄적인, 종합적인, 이해력이 있는","day":"17-18"},{"en":"policy","ko":"정책, 방침","day":"17-18"},{"en":"context","ko":"맥락, 전후 사정, 배경, 문맥","day":"17-18"},{"en":"civilian","ko":"민간인의, 민간인","day":"17-18"},{"en":"significance","ko":"중요성, 의의, 의미","day":"17-18"},{"en":"republican","ko":"공화주의자, 공화당원, 공화국의, 공화당의","day":"17-18"},{"en":"detailed","ko":"상세한","day":"17-18"},{"en":"autonomy","ko":"자치권, 자주성, 자율성","day":"17-18"},{"en":"competent","ko":"유능한, 충분한","day":"17-18"},{"en":"opponent","ko":"상대; 반대자","day":"17-18"},{"en":"remarkable","ko":"놀랄 만한, 주목할 만한","day":"17-18"},{"en":"candidate","ko":"후보자, 지원자","day":"17-18"},{"en":"prolific","ko":"다작의, 다산의, 풍부한","day":"17-18"},{"en":"nominate","ko":"(후보자로) 지명하다, 추천하다; 임명하다","day":"17-18"},{"en":"manuscript","ko":"원고, 사본, 필사본","day":"17-18"},{"en":"congress","ko":"의회, 국회; 회의, 회합","day":"17-18"},{"en":"verse","ko":"시[운문], (시의) 연, (노래의) 절","day":"17-18"},{"en":"committee","ko":"위원회","day":"17-18"},{"en":"chronological","ko":"발생 순서대로 된, 연대순의","day":"17-18"},{"en":"refugee","ko":"난민, 망명자","day":"17-18"},{"en":"delicacy","ko":"섬세함, 정교함, 연약함, 별미","day":"17-18"},{"en":"immigrant","ko":"(다른 나라로부터의) 이민자, 이주민","day":"17-18"},{"en":"anonymous","ko":"익명의, 작자 불명의, 특색 없는","day":"17-18"},{"en":"racial segregation","ko":"인종 차별, 인종 분리","day":"17-18"},{"en":"depict","ko":"묘사핟, 서술하다, 그리다","day":"17-18"},{"en":"absentee ballot","ko":"부재자 투표, 부재자 투표 용지","day":"17-18"},{"en":"evaluate","ko":"평가하다","day":"17-18"},{"en":"standpoint","ko":"관점, 견지","day":"17-18"},{"en":"referent","ko":"지시 대상","day":"17-18"},{"en":"ponder","ko":"숙고하다, 곰곰이 생각하다","day":"17-18"},{"en":"reasoning","ko":"추리, 추론, 논거","day":"17-18"},{"en":"notion","ko":"개념, 생각","day":"17-18"},{"en":"embed","ko":"끼워 넣다, 박다, 내포하다","day":"17-18"},{"en":"mandate","ko":"위임, 권한, 명령[지시]하다; 위임하다","day":"17-18"},{"en":"explicit","ko":"명백한, 분명한, 솔직한","day":"17-18"},{"en":"ensure","ko":"확실하게 하다, 보장하다","day":"17-18"},{"en":"orally","ko":"구두로, 입을 통해서","day":"17-18"},{"en":"impulsive","ko":"충동적인","day":"17-18"},{"en":"distinguished","ko":"저명한, 유명한, 두드러진","day":"17-18"},{"en":"retain","ko":"유지하다, 보유하다","day":"17-18"},{"en":"rhetoric","ko":"수사법, 수사학, 미사여구","day":"17-18"},{"en":"entail","ko":"수반하다, 포함하다","day":"17-18"},{"en":"metaphorical","ko":"비유의, 은유의","day":"17-18"},{"en":"theoretically","ko":"이론상","day":"17-18"},{"en":"adept","ko":"능숙한, 숙련자, 능통한 사람","day":"17-18"},{"en":"parliament","ko":"(영국의) 의회, 국회","day":"17-18"},{"en":"proverbial","ko":"속담의, 유명한","day":"17-18"},{"en":"monarchy","ko":"군주제","day":"17-18"},{"en":"extraordinary","ko":"기이한, 비범한, 대단한","day":"17-18"},{"en":"predominant","ko":"뚜렷한, 지배적인, 주요한","day":"17-18"},{"en":"acclaim","ko":"칭송하다, 환호를 보내다, 찬사","day":"17-18"},{"en":"federal","ko":"연방의, 연방 정부의, 연합의","day":"17-18"},{"en":"cherish","ko":"소중히 여기다, (마음속에) 간직하다","day":"17-18"},{"en":"patriotic","ko":"애국적인","day":"17-18"},{"en":"spectator","ko":"관중, 구경꾼","day":"17-18"},{"en":"volatile","ko":"변덕스러운, 불안한; 휘발성의","day":"17-18"},{"en":"fictional","ko":"허구의, 소설의","day":"17-18"},{"en":"arbitrary","ko":"임의적인, 독단적인","day":"17-18"},{"en":"inevitable","ko":"필연적인, 불가피한","day":"17-18"},{"en":"bias","ko":"편견, 편견을 갖게 하다","day":"17-18"},{"en":"abruptly","ko":"갑자기, 뜻밖에","day":"17-18"},{"en":"spark","ko":"촉발시키다, 유발하다, 불꽃, 기폭제","day":"17-18"},{"en":"everlasting","ko":"영원한, 변치 않는, 끊임없는","day":"17-18"},{"en":"autorize","ko":"위임하다, 권한을 주다","day":"17-18"},{"en":"linger","ko":"남다, 오래 머물다","day":"17-18"},{"en":"collectivized","ko":"집산화된 (농장∙산업체 등을 모아 집단이나, 정부가 관리하게 하는 것)","day":"17-18"},{"en":"immensity","ko":"엄청남, 방대함","day":"17-18"},{"en":"stream","ko":"흐르다, 줄을 지어 이동하다, 이어지다","day":"17-18"},{"en":"jury","ko":"배심원단","day":"19-20"},{"en":"accumulate","ko":"쌓다, 축적하다","day":"19-20"},{"en":"illegal","ko":"불법의, 비합법적인","day":"19-20"},{"en":"loan","ko":"대출(금), 대여, 빌려주다, 대여하다","day":"19-20"},{"en":"advocate","ko":"지지하다, 옹호하다, 옹호자, 지지자","day":"19-20"},{"en":"estimate","ko":"견적을 내다, 추정하다, 견적서, 추정치","day":"19-20"},{"en":"petition","ko":"진정서, 탄원서","day":"19-20"},{"en":"revenue","ko":"수입, 수익","day":"19-20"},{"en":"defendant","ko":"피고","day":"19-20"},{"en":"financing","ko":"재정, 융자","day":"19-20"},{"en":"prosecution","ko":"기소, 고발, 기소자 측, 검찰 측","day":"19-20"},{"en":"merchant","ko":"상인, 상업의, 상인의","day":"19-20"},{"en":"victim","ko":"피해자, 희생자","day":"19-20"},{"en":"subsidy","ko":"보조금, 장려금","day":"19-20"},{"en":"accuse","ko":"고발하다, 기소하다","day":"19-20"},{"en":"monetary","ko":"통화의, 화폐의","day":"19-20"},{"en":"violation","ko":"위반, 위배","day":"19-20"},{"en":"asset","ko":"자산, 재산","day":"19-20"},{"en":"legitimate","ko":"정당한, 타당한, 합법적인","day":"19-20"},{"en":"institution","ko":"기관, 단체, 협회","day":"19-20"},{"en":"sue","ko":"고소하다, 소송을 제기하다","day":"19-20"},{"en":"deficit","ko":"부족, 적자","day":"19-20"},{"en":"agitate","ko":"선동하다, (강력히) 주장하다, 불안하게 만들다","day":"19-20"},{"en":"transaction","ko":"거래, 처리","day":"19-20"},{"en":"enact","ko":"제정하다, 법제화하다, 재현하다","day":"19-20"},{"en":"sufficient","ko":"충분한","day":"19-20"},{"en":"alleged","ko":"(증거 없이) 주장된","day":"19-20"},{"en":"impose","ko":"(세금∙의무 등을) 부과하다; 강요하다","day":"19-20"},{"en":"causality","ko":"인과 관계","day":"19-20"},{"en":"insurance","ko":"보험, 보험금, 보험료","day":"19-20"},{"en":"enforce","ko":"집행하다, 강요하다","day":"19-20"},{"en":"warranty","ko":"품질 보증서","day":"19-20"},{"en":"abolition","ko":"폐지","day":"19-20"},{"en":"sustainable","ko":"지속 가능한","day":"19-20"},{"en":"convict","ko":"유죄를 선고하다","day":"19-20"},{"en":"fluctuation","ko":"변동, 파동; (사람의) 동요","day":"19-20"},{"en":"property right","ko":"재산권","day":"19-20"},{"en":"allot","ko":"할당하다, 분배하다","day":"19-20"},{"en":"validity","ko":"유효함, 타당성","day":"19-20"},{"en":"launch","ko":"시작하다, (제품을) 출시하다, 발매하다","day":"19-20"},{"en":"restrictive","ko":"제한하는, 구속하는","day":"19-20"},{"en":"incentive","ko":"인센티브, 보상, 특혜","day":"19-20"},{"en":"torture","ko":"고문, 고문하다","day":"19-20"},{"en":"morale","ko":"사기, 의욕","day":"19-20"},{"en":"amendment","ko":"수정 조항","day":"19-20"},{"en":"demanding","ko":"요구가 지나친, 까다로운","day":"19-20"},{"en":"consent","ko":"동의, 허락, 인가, 동의하다, 허락하다","day":"19-20"},{"en":"equivalent","ko":"동등한, 상당하는 것","day":"19-20"},{"en":"conflicting","ko":"서로 싸우는, 상반되는","day":"19-20"},{"en":"corporate","ko":"기업의","day":"19-20"},{"en":"legislation","ko":"법률 제정, 입법, 법률","day":"19-20"},{"en":"alter","ko":"변환하다, 바꾸다","day":"19-20"},{"en":"contradict","ko":"부정하다, 모순되다","day":"19-20"},{"en":"bankruptcy","ko":"파산","day":"19-20"},{"en":"regulate","ko":"규제하다, 조절하다","day":"19-20"},{"en":"pension","ko":"연금","day":"19-20"},{"en":"assault","ko":"폭행(죄), 맹공격, 비난","day":"19-20"},{"en":"tariff","ko":"관세","day":"19-20"},{"en":"exclude","ko":"제외하다, 배제하다","day":"19-20"},{"en":"contract","ko":"계약, 계약서, 수축시키다, 계약하다","day":"19-20"},{"en":"specify","ko":"(구체적으로) 명시하다, 명확히 말하다","day":"19-20"},{"en":"enhance","ko":"강화하다, 높이다","day":"19-20"},{"en":"assert","ko":"주장하다, 확고히 하다","day":"19-20"},{"en":"gross","ko":"총계의; 엄청난","day":"19-20"},{"en":"disturbance","ko":"방해, 소란, 장애","day":"19-20"},{"en":"negotiate","ko":"협상하다","day":"19-20"},{"en":"exemplify","ko":"전형적인 예가 되다, 예를 들다","day":"19-20"},{"en":"wage","ko":"임금","day":"19-20"},{"en":"in favor of","ko":"~을 찬성하여, ~을 지지하여, ~을 위하여","day":"19-20"},{"en":"authority","ko":"권위, 권한, 당국","day":"19-20"},{"en":"patent","ko":"특허(권), 특허를 받다","day":"19-20"},{"en":"agenda","ko":"의제","day":"19-20"},{"en":"confidentiality","ko":"비밀(을 지켜야 하는 상황)","day":"19-20"},{"en":"affiliate","ko":"제휴[연계]하다, 계열사, 지부","day":"19-20"},{"en":"priority","ko":"우선 사항, 우선권","day":"19-20"},{"en":"adhere to","ko":"~을 고수하다, ~에 들러붙다","day":"19-20"},{"en":"constitute","ko":"구성하다, ~이 되다, 여겨지다","day":"19-20"},{"en":"withdraw","ko":"빼내다, 거둬들이다, (돈을) 인출하다","day":"19-20"},{"en":"conclusive","ko":"결정적인","day":"19-20"},{"en":"soar","ko":"급상승하다","day":"19-20"},{"en":"measure","ko":"측정하다, 판단[평가]하다","day":"21-22"},{"en":"geology","ko":"지질학","day":"21-22"},{"en":"float","ko":"(물 위에) 뜨다, 떠다니다","day":"21-22"},{"en":"eruption","ko":"분출, (화산의) 폭발","day":"21-22"},{"en":"explosion","ko":"폭발, 폭발적인 증가","day":"21-22"},{"en":"volcanic","ko":"화산의, 화산 작용에 의해 만들어진","day":"21-22"},{"en":"liquid","ko":"액체, 액체의, 유동적인","day":"21-22"},{"en":"altitude","ko":"고도, 높이; 고지","day":"21-22"},{"en":"accelerate","ko":"가속화하다, 촉진하다, 속력이 더해지다","day":"21-22"},{"en":"burst","ko":"터뜨림, 파열, 터뜨리다, 파열시키다","day":"21-22"},{"en":"gravity","ko":"중력, 중대성","day":"21-22"},{"en":"erosion","ko":"부식, 침식","day":"21-22"},{"en":"adjust","ko":"조정하다, 적응하다","day":"21-22"},{"en":"weathering","ko":"풍화 (작용)","day":"21-22"},{"en":"mass","ko":"거대한, 덩어리, 대량, 질량","day":"21-22"},{"en":"molten","ko":"녹은, 용해된","day":"21-22"},{"en":"detach","ko":"분리하다, 떼어내다","day":"21-22"},{"en":"mudslide","ko":"이류, 토사 유출","day":"21-22"},{"en":"velocity","ko":"속도","day":"21-22"},{"en":"atmosphere","ko":"대기, 공기, 분위기","day":"21-22"},{"en":"exert","ko":"(힘∙지식 등을) 쓰다, 발휘하다; , (압력을) 가하다","day":"21-22"},{"en":"equatorial","ko":"적도의","day":"21-22"},{"en":"hypothesis","ko":"가설, 추정","day":"21-22"},{"en":"geothermal","ko":"지열의","day":"21-22"},{"en":"droplet","ko":"작은 (물)방울, 비말","day":"21-22"},{"en":"polar","ko":"북극[남극]의, 양극의","day":"21-22"},{"en":"coincide","ko":"동시에 일어나다, 일치하다","day":"21-22"},{"en":"axis","ko":"축","day":"21-22"},{"en":"illumination","ko":"빛, 조명","day":"21-22"},{"en":"boundary","ko":"경계(선)","day":"21-22"},{"en":"molecule","ko":"분자","day":"21-22"},{"en":"diverge","ko":"갈라지다, 나뉘다; 발산하다","day":"21-22"},{"en":"friction","ko":"마찰, 마찰 저항, 갈등","day":"21-22"},{"en":"subside","ko":"가라앉다, 진정되다, (물이) 빠지다","day":"21-22"},{"en":"transmit","ko":"전송하다, (열∙전기∙소리 등을) 전도하다","day":"21-22"},{"en":"vertical","ko":"수직의, 세로의, 수직, 세로","day":"21-22"},{"en":"stationary","ko":"움직이지 않는, 정지된","day":"21-22"},{"en":"radiation","ko":"방사선","day":"21-22"},{"en":"resonate","ko":"울려 퍼지다","day":"21-22"},{"en":"pore","ko":"(피부∙잎의) 작은 구멍, (암석의) 세공","day":"21-22"},{"en":"inverse","ko":"역의, 반대의, 정반대","day":"21-22"},{"en":"astronomer","ko":"천문학자","day":"21-22"},{"en":"diffuse","ko":"분산된, 장황한, 퍼뜨리다, 분산[확산]되다","day":"21-22"},{"en":"celestial","ko":"하늘의, 천체의","day":"21-22"},{"en":"dilute","ko":"희석하다, 묽게 되다","day":"21-22"},{"en":"galaxy","ko":"은하수, 은하계","day":"21-22"},{"en":"compound","ko":"화합물, 혼합물, 혼합의, 합성의 / 혼합하다, 약화시키다","day":"21-22"},{"en":"meteor","ko":"유성, 별똥별","day":"21-22"},{"en":"radioactive","ko":"방사능의, 방사성의","day":"21-22"},{"en":"comet","ko":"혜성","day":"21-22"},{"en":"ignite","ko":"불을 붙이다, 점화하다","day":"21-22"},{"en":"heavenly body","ko":"천체","day":"21-22"},{"en":"inhale","ko":"숨을 들이마시다","day":"21-22"},{"en":"asteroid","ko":"소행성","day":"21-22"},{"en":"investigate","ko":"조사하다, 살피다","day":"21-22"},{"en":"chaos","ko":"혼돈, 혼란","day":"21-22"},{"en":"verify","ko":"확인하다; 입증하다","day":"21-22"},{"en":"stability","ko":"안정, 안정성","day":"21-22"},{"en":"perceptible","ko":"인지할 수 있는, 지각할 수 있는","day":"21-22"},{"en":"scarce","ko":"부족한, 드문","day":"21-22"},{"en":"spontaneously","ko":"자발적으로, 자연스럽게","day":"21-22"},{"en":"immeasurable","ko":"측정할 수 없는, 끝없는","day":"21-22"},{"en":"condense","ko":"응결되다, 농축되다; 압축하다","day":"21-22"},{"en":"dispel","ko":"떨쳐 버리다, 없애다","day":"21-22"},{"en":"corrode","ko":"부식시키다, 부식하다","day":"21-22"},{"en":"ensue","ko":"뒤따르다, 이어지다","day":"21-22"},{"en":"constituent","ko":"구성 요소, 성분, 구성물, 구성하는, 성분을 이루는","day":"21-22"},{"en":"alignment","ko":"일직선, 정렬","day":"21-22"},{"en":"dissolve","ko":"용해되다, 녹다; 용해시키다;, (조직 등을) 해산시키다","day":"21-22"},{"en":"speck","ko":"작은 얼룩, 작은 알갱이","day":"21-22"},{"en":"enclosure","ko":"폐쇄 공간, 울타리","day":"21-22"},{"en":"sizeable","ko":"꽤 큰, 상당한","day":"21-22"},{"en":"vaporize","ko":"증발하다, 기화하다","day":"21-22"},{"en":"tug","ko":"당기다, 힘껏 당김; 분투, 노력","day":"21-22"},{"en":"screen out","ko":"~을 차단하다, ~을 거르다","day":"21-22"},{"en":"peculiarity","ko":"기이한 특징, 이상함","day":"21-22"},{"en":"solvent","ko":"용해되는; 지불 능력이 있는, 용매","day":"21-22"},{"en":"inanimate","ko":"무생물의; 죽은","day":"21-22"},{"en":"convert","ko":"바꾸다, 전환하다, 변환하다","day":"21-22"},{"en":"recede","ko":"물러나다, 희미해지다","day":"21-22"},{"en":"species","ko":"종","day":"23-24"},{"en":"diagnose","ko":"진단하다","day":"23-24"},{"en":"upright","ko":"직립의, 똑바른; 강직한, 똑바로","day":"23-24"},{"en":"affliction","ko":"고통; 고통의 원인","day":"23-24"},{"en":"evolution","ko":"진화, 발전","day":"23-24"},{"en":"pregnancy","ko":"임신; 임신 기간","day":"23-24"},{"en":"adoptive","ko":"입양된; 채택된","day":"23-24"},{"en":"fatal","ko":"치명적인","day":"23-24"},{"en":"be derived from","ko":"~에서 파생되다, ~에서 유래되다","day":"23-24"},{"en":"antibody","ko":"항체","day":"23-24"},{"en":"fertilize","ko":"수정시키다; 비료를 주다","day":"23-24"},{"en":"sore","ko":"아픈, 따가운","day":"23-24"},{"en":"breed","ko":"새끼를 낳다, 사육하다, (가축의) 품종","day":"23-24"},{"en":"diabetes","ko":"당뇨병","day":"23-24"},{"en":"mutate","ko":"돌연변이가 되다, 변형되다","day":"23-24"},{"en":"insomnia","ko":"불면증","day":"23-24"},{"en":"variation","ko":"변화[차이], 변형","day":"23-24"},{"en":"paralyze","ko":"마비시키다, 쓸모없게 만들다","day":"23-24"},{"en":"clone","ko":"복제, 복제 생물, 복제하다","day":"23-24"},{"en":"chronic","ko":"만성적인, 만성 질환을 앓고 있는","day":"23-24"},{"en":"tissue","ko":"(세포들로 이루어진) 조직","day":"23-24"},{"en":"infection","ko":"감염, 전염병","day":"23-24"},{"en":"halt","ko":"멈춤, 중단, 멈추다, 중단시키다","day":"23-24"},{"en":"epidemic","ko":"유행병, 유행성의","day":"23-24"},{"en":"anatomy","ko":"해부학, (해부학적) 구조","day":"23-24"},{"en":"flavor[flavour]","ko":"풍미, 맛 , 풍미를 더하다, 맛을 내다","day":"23-24"},{"en":"mature","ko":"성숙한, 다 자란, 잘 익은, 성숙해지다","day":"23-24"},{"en":"medication","ko":"약, 약물 치료","day":"23-24"},{"en":"susceptible to","ko":"~에 민감한, ~에 걸리기 쉬운","day":"23-24"},{"en":"prescribe","ko":"처방하다; 지시하다","day":"23-24"},{"en":"microbe","ko":"미생물; 세균","day":"23-24"},{"en":"metabolize","ko":"대사 작용을 하다, 신진대사를 시키다","day":"23-24"},{"en":"subsequent","ko":"그 다음의","day":"23-24"},{"en":"subtle","ko":"미묘한, 감지하기 힘든","day":"23-24"},{"en":"circulatory","ko":"순환의, 혈액 순환의","day":"23-24"},{"en":"carbohydrate","ko":"탄수화물, 탄수화물 식품","day":"23-24"},{"en":"persist","ko":"계속하다, 고집하다","day":"23-24"},{"en":"stem from","ko":"~에서 생겨나다, ~에서 기인하다","day":"23-24"},{"en":"undermine","ko":"약화시키다","day":"23-24"},{"en":"dietary","ko":"음식물의, 식이요법의","day":"23-24"},{"en":"absorption","ko":"흡수, 몰두, 전념","day":"23-24"},{"en":"supplement","ko":"보충(제), 추가물, 보충하다, 보완하다","day":"23-24"},{"en":"subtract A from B","ko":"B에서 A를 빼다","day":"23-24"},{"en":"nutrient","ko":"영양소, 영양분, 영양이 되는","day":"23-24"},{"en":"dictate","ko":"~에 영향을 주다; 지시하다, 명령, 규칙","day":"23-24"},{"en":"toxic","ko":"유독성의, 중독의","day":"23-24"},{"en":"remnant","ko":"남은 부분, 나머지; 유물","day":"23-24"},{"en":"dose","ko":"(약의) 복용량","day":"23-24"},{"en":"evaporate","ko":"증발하다; 사라지다","day":"23-24"},{"en":"transplant","ko":"이식하다, 옮겨 심다, 이식","day":"23-24"},{"en":"intervention","ko":"개입","day":"23-24"},{"en":"hygiene","ko":"위생","day":"23-24"},{"en":"equilibrium","ko":"평셩 (상태); (마음의) 평정","day":"23-24"},{"en":"pharmaceutical","ko":"약학의, 제약의, 의약품","day":"23-24"},{"en":"binocular","ko":"두 눈으로 보는, 쌍안경","day":"23-24"},{"en":"alleviate","ko":"완화하다, 경감시키다","day":"23-24"},{"en":"gene","ko":"유전자","day":"23-24"},{"en":"anesthetic","ko":"마취제, 마취의, 무감각한","day":"23-24"},{"en":"heredity","ko":"유전(적 특징); 유산, 상속","day":"23-24"},{"en":"deficiency","ko":"결핍, 부족, 결함","day":"23-24"},{"en":"sperm","ko":"정자, 정액","day":"23-24"},{"en":"artery","ko":"동맥","day":"23-24"},{"en":"descendant","ko":"자손, 후손","day":"23-24"},{"en":"pneumonia","ko":"폐렴","day":"23-24"},{"en":"succeeding","ko":"계속해서 일어나는, 다음의","day":"23-24"},{"en":"nausea","ko":"메스꺼움","day":"23-24"},{"en":"sibling","ko":"형제자매","day":"23-24"},{"en":"swell","ko":"부풀다, 팽창하다","day":"23-24"},{"en":"retina","ko":"망막","day":"23-24"},{"en":"perspiration","ko":"땀; 노력","day":"23-24"},{"en":"conceive","ko":"마음속으로 품다, 상상하다, 임신하다","day":"23-24"},{"en":"soothing","ko":"달래는, 위로하는, 진정시키는","day":"23-24"},{"en":"inheritance","ko":"유전, 유산, 상속","day":"23-24"},{"en":"blood vessel","ko":"혈관","day":"23-24"},{"en":"association","ko":"관계, 연계, 연상, 연관성, 협회, 단체","day":"23-24"},{"en":"gland","ko":"(분비)선, 샘","day":"23-24"},{"en":"soak","ko":"담그다, 적시다, 스며들다","day":"23-24"},{"en":"complication","ko":"합병증, 까다로운 문제","day":"23-24"},{"en":"prerequisite","ko":"전제 조건","day":"23-24"},{"en":"immune system","ko":"면역 체계","day":"23-24"},{"en":"ecosystem","ko":"생태계","day":"25-26"},{"en":"crater","ko":"분화구, 큰 구멍","day":"25-26"},{"en":"creature","ko":"생물, 생명(체)","day":"25-26"},{"en":"barren","ko":"메마른, 황폐한","day":"25-26"},{"en":"colony","ko":"식민지, (동∙식물의) 군집, 군락","day":"25-26"},{"en":"debris","ko":"잔해, 쓰레기","day":"25-26"},{"en":"wildlife","ko":"야생 동식물","day":"25-26"},{"en":"fertility","ko":"비옥; 다산","day":"25-26"},{"en":"vegetation","ko":"초목, 식물","day":"25-26"},{"en":"excavate","ko":"발굴하다, 출토하다","day":"25-26"},{"en":"refinement","ko":"(작은 변화를 통한) 개선; 정제","day":"25-26"},{"en":"archaeologist","ko":"고고학자","day":"25-26"},{"en":"counterpart","ko":"상대, 대응 관계에 있는 것","day":"25-26"},{"en":"spill","ko":"쏟다, 흘리다, 엎지름, 유출","day":"25-26"},{"en":"resilience","ko":"회복력, 원상태로 회복하는 능력; 탄력","day":"25-26"},{"en":"municipal","ko":"도시의, 지방 자치의, 국내의","day":"25-26"},{"en":"habitat","ko":"서식지","day":"25-26"},{"en":"distribution","ko":"분포, 분배","day":"25-26"},{"en":"infestation","ko":"침략; 만연; (기생충 등의) 체내 침입","day":"25-26"},{"en":"realm","ko":"영역, 범위; 왕국","day":"25-26"},{"en":"natural selection","ko":"자연 선택, 자연 도태","day":"25-26"},{"en":"coastal","ko":"연안의, 해안의","day":"25-26"},{"en":"decompose","ko":"분해하다; 부패하다","day":"25-26"},{"en":"prosper","ko":"번영하다, 번창하다","day":"25-26"},{"en":"extinct","ko":"멸종된, 사라진","day":"25-26"},{"en":"abandon","ko":"버리다, 포기[단념]하다","day":"25-26"},{"en":"harbor","ko":"항구, 피난처, 품다, 숨겨 주다","day":"25-26"},{"en":"humid","ko":"습한","day":"25-26"},{"en":"penetrate","ko":"침투하다, 관통하다","day":"25-26"},{"en":"hollow","ko":"속이 빈, 움푹 꺼진, 움푹 꺼진 곳","day":"25-26"},{"en":"incompatible","ko":"양립할 수 없는, 모순된","day":"25-26"},{"en":"imprint","ko":"흔적 자국, 새기다, 각인시키다","day":"25-26"},{"en":"endangered","ko":"멸종 위기에 처한, 소멸 위기에 처한","day":"25-26"},{"en":"disperse","ko":"흩어지다, 해산시키다","day":"25-26"},{"en":"vanish","ko":"사라지다, 없어지다","day":"25-26"},{"en":"catastrophe","ko":"재앙, 참사","day":"25-26"},{"en":"natural enemy","ko":"천적","day":"25-26"},{"en":"shelter","ko":"주거지, 피신처, 보호소, 보호하다, 거처를 제공하다","day":"25-26"},{"en":"adapt","ko":"맞추다, 조정하다, 적응하다","day":"25-26"},{"en":"construct","ko":"건설하다, 구성하다","day":"25-26"},{"en":"propagation","ko":"번식, 증식, (사상 등의) 선전, 전파","day":"25-26"},{"en":"graze","ko":"방목하다, 풀을 뜯다","day":"25-26"},{"en":"population","ko":"인구, 주민, 개체군, 개체 수","day":"25-26"},{"en":"cultivate","ko":"경작하다, 재배하다, 기르다","day":"25-26"},{"en":"widespread","ko":"널리 퍼진, 광범위한","day":"25-26"},{"en":"enrichment","ko":"비옥화, 풍부하게 함","day":"25-26"},{"en":"infrequent","ko":"아주 드문, 희귀한","day":"25-26"},{"en":"avalanch","ko":"(눈∙산)사태; 쇄도","day":"25-26"},{"en":"intact","ko":"전혀 손대지 않은, 고스란히 보존된","day":"25-26"},{"en":"territory","ko":"영토, 지역","day":"25-26"},{"en":"marsh","ko":"늪, 습지","day":"25-26"},{"en":"famine","ko":"기근","day":"25-26"},{"en":"precipitation","ko":"강수, 상수량","day":"25-26"},{"en":"advent","ko":"출현, 도래","day":"25-26"},{"en":"arid","ko":"(땅 등이) 건조한, 메마른, 무미건조한, 지루한","day":"25-26"},{"en":"slope","ko":"경사지다, 기울어지다, (산)비탈, 경사면, 기울기","day":"25-26"},{"en":"Antarctica","ko":"남극 대륙","day":"25-26"},{"en":"glacial","ko":"빙하의","day":"25-26"},{"en":"antifreeze","ko":"부동액 (어는 것을 방지해주는 용액)","day":"25-26"},{"en":"plantation","ko":"(대규모) 농장","day":"25-26"},{"en":"dense","ko":"빽빽한, 밀집한, <물리> 밀도가 높은","day":"25-26"},{"en":"drought","ko":"가뭄","day":"25-26"},{"en":"cavity","ko":"구멍, 움푹한 곳, 충치의 구멍","day":"25-26"},{"en":"isolate","ko":"격리하다, 고립시키다","day":"25-26"},{"en":"invade","ko":"(영역을) 침범하다","day":"25-26"},{"en":"constraint","ko":"제약","day":"25-26"},{"en":"domain","ko":"영역, 역, 범위","day":"25-26"},{"en":"barrier","ko":"울타리, 장벽, 장애","day":"25-26"},{"en":"periphery","ko":"주변, 주변부","day":"25-26"},{"en":"elevation","ko":"상승, 증가, 해발 높이, 고도","day":"25-26"},{"en":"submerge","ko":"잠수하다, 물속에 잠기다","day":"25-26"},{"en":"deforestation","ko":"삼림 벌채, 파괴","day":"25-26"},{"en":"specimen","ko":"견본, 샘플, 표본","day":"25-26"},{"en":"latitude","ko":"위도, 자유","day":"25-26"},{"en":"dampen","ko":"축축하게 하다, 적시다; 기를 꺾다","day":"25-26"},{"en":"ridge","ko":"산등성이, 길쭉하게 솟은 부분","day":"25-26"},{"en":"coarse","ko":"거친, 조악한, (알갱이∙올 등이) 굵은","day":"25-26"},{"en":"terrain","ko":"지형, 지대","day":"25-26"},{"en":"jeopardize","ko":"위태롭게 하다, 위험에 빠뜨리다","day":"25-26"},{"en":"magnificent","ko":"훌륭한, 장엄한","day":"25-26"},{"en":"organism","ko":"유기체, 생물","day":"27-28"},{"en":"biodegradable","ko":"자연 분해성의 (박테리아에 의해, 분해되어 환경에 해가 되지 않는)","day":"27-28"},{"en":"inhabitant","ko":"서식 동물; 거주자, 주민","day":"27-28"},{"en":"pollute","ko":"오염시키다, 더럽히다","day":"27-28"},{"en":"predator","ko":"포식자, 포식 동물 , 약탈자","day":"27-28"},{"en":"by-product","ko":"부산물","day":"27-28"},{"en":"instinct","ko":"본능, 직갑","day":"27-28"},{"en":"combustion","ko":"연소","day":"27-28"},{"en":"reserve","ko":"(동식물 등의) 보호 구역 , 예약하다; 남겨 두다","day":"27-28"},{"en":"conservation","ko":"보호, 보존","day":"27-28"},{"en":"prey","ko":"먹이, 사냥감, 희생자, 피해자","day":"27-28"},{"en":"abundance","ko":"풍부함","day":"27-28"},{"en":"in captivity","ko":"사로잡혀서; 포로가 되어","day":"27-28"},{"en":"litter","ko":"쓰레기, (쓰레기를) 버리다, 어지럽히다","day":"27-28"},{"en":"expedition","ko":"탐험, 원정(대), 여행","day":"27-28"},{"en":"ripen","ko":"익다, 숙성하다","day":"27-28"},{"en":"calf","ko":"송아지, (코끼리∙고래 등의) 새끼","day":"27-28"},{"en":"substantial","ko":"상당한, 실재하는","day":"27-28"},{"en":"imitate","ko":"모방하다, 흉내 내다","day":"27-28"},{"en":"degradation","ko":"악화, 저하; (지층∙암석의) 침식","day":"27-28"},{"en":"meadow","ko":"목초지, 초원","day":"27-28"},{"en":"pesticide","ko":"살충제, 농약","day":"27-28"},{"en":"reproduce","ko":"재생하다, 복제하다, 번식하다, 생식하다","day":"27-28"},{"en":"alternative","ko":"대체의, 대안적인, 양자택일, 대안","day":"27-28"},{"en":"coloration","ko":"(동물의) 천연색","day":"27-28"},{"en":"hazardous","ko":"위험한","day":"27-28"},{"en":"conspicuous","ko":"눈에 띄는, 뚜렷한","day":"27-28"},{"en":"dwindle","ko":"(점점) 줄어들다","day":"27-28"},{"en":"invertebrate","ko":"무척추동물, 척추가 없는","day":"27-28"},{"en":"noxious","ko":"유독한, 유해한","day":"27-28"},{"en":"pastureland","ko":"목초지, 방목장","day":"27-28"},{"en":"devastating","ko":"파괴적인, 압도적인","day":"27-28"},{"en":"caterpillar","ko":"애벌레","day":"27-28"},{"en":"projected","ko":"예상된","day":"27-28"},{"en":"larva","ko":"유충, 애벌레","day":"27-28"},{"en":"downside","ko":"하강, 악화, 부정적인 면","day":"27-28"},{"en":"beak","ko":"부리; (매부리) 코","day":"27-28"},{"en":"destructive","ko":"파괴적인, 압도적인","day":"27-28"},{"en":"overwinter","ko":"겨울을 나다, 월동하다","day":"27-28"},{"en":"sewage","ko":"하수, 오물","day":"27-28"},{"en":"dormant","ko":"잠자는, 휴면 중인","day":"27-28"},{"en":"deplete","ko":"격감시키다, 고갈시키다","day":"27-28"},{"en":"restore","ko":"복원하다, 회복시키다","day":"27-28"},{"en":"elimination","ko":"제거, 배제, 배출","day":"27-28"},{"en":"burrow","ko":"굴을 파다, 깊이 파고들다, 굴, 은신처","day":"27-28"},{"en":"petroleum","ko":"석유","day":"27-28"},{"en":"migrate","ko":"이주하다, 이동하다","day":"27-28"},{"en":"viable","ko":"실행 가능한, 성공할 수 있는","day":"27-28"},{"en":"spawn","ko":"알을 낳다; (결과를) 낳다 , (어류∙양서류 등의) 알 (덩어리)","day":"27-28"},{"en":"incremental","ko":"증가하는, 증대의","day":"27-28"},{"en":"hatch","ko":"부화하다, 생각해 내다, 꾸미다","day":"27-28"},{"en":"drainage","ko":"배수, 배수 시설, 하수, 오수","day":"27-28"},{"en":"pollinate","ko":"수분하다","day":"27-28"},{"en":"irrigate","ko":"관개하다, 물을 대다","day":"27-28"},{"en":"petal","ko":"꽃잎","day":"27-28"},{"en":"emit","ko":"(빛∙열∙소리 등을) 내다, 방출하다","day":"27-28"},{"en":"pollen","ko":"꽃가루, 화분","day":"27-28"},{"en":"discharge","ko":"방출하다, 석방하다, 해고하다, 방출, 배출, 해방","day":"27-28"},{"en":"germinate","ko":"싹트다, 시작되다","day":"27-28"},{"en":"contaminate","ko":"오염시키다, 더럽히다","day":"27-28"},{"en":"seedling","ko":"묘목, 어린 식물","day":"27-28"},{"en":"recyclable","ko":"재활용[재생]할 수 있는","day":"27-28"},{"en":"hover","ko":"공중을 맴돌다, 배회하다, 서성이다","day":"27-28"},{"en":"earth-friendly","ko":"환경 친화적인","day":"27-28"},{"en":"botanical","ko":"식물의, 식물에서 채취한","day":"27-28"},{"en":"disposable","ko":"일회용의; 이용 가능한, 일회용품","day":"27-28"},{"en":"perennial","ko":"영원한, 지속되는, 다년생의, 다년생 식물","day":"27-28"},{"en":"landfill","ko":"쓰레기 매립지","day":"27-28"},{"en":"ingrained","ko":"깊이 배어든, 뿌리 깊은, 타고난, 물이 든","day":"27-28"},{"en":"replant","ko":"옮겨 심다, 이식하다","day":"27-28"},{"en":"stalk","ko":"식물의 줄기","day":"27-28"},{"en":"sustain","ko":"지속시키다, 견디다","day":"27-28"},{"en":"sturdy","ko":"튼튼한, 억센, 확고한","day":"27-28"},{"en":"unleash","ko":"촉발시키다, 불러일으키다; ~을 풀어놓다","day":"27-28"},{"en":"sprout","ko":"눈, 싹, 싹트다, 발생하다","day":"27-28"},{"en":"exploit","ko":"(부당하게) 이용하다, 활용하다, 착취하다","day":"27-28"},{"en":"shrub","ko":"관목","day":"27-28"},{"en":"sustenance","ko":"지속, 유지, 자양물","day":"27-28"},{"en":"fungus","ko":"균류, 곰팡이","day":"27-28"},{"en":"counteract","ko":"대응하다","day":"27-28"},{"en":"infrastructure","ko":"사회 기반 시설, 인프라","day":"29-30"},{"en":"swift","ko":"신속한, 빠른","day":"29-30"},{"en":"raw material","ko":"(제품의) 원료, 원자재","day":"29-30"},{"en":"advance","ko":"전진, 발전, 나아가다, 증진되다","day":"29-30"},{"en":"component","ko":"부품, 요소, 성분","day":"29-30"},{"en":"communicative","ko":"의사소통 상의; 터놓고 이야기하는","day":"29-30"},{"en":"supervise","ko":"감독하다, 감시하다","day":"29-30"},{"en":"analyze","ko":"분석하다, 검토하다","day":"29-30"},{"en":"yield","ko":"(수익∙결과 등을) 내다, 생산물, 수확물","day":"29-30"},{"en":"encode","ko":"암호화하다, 부호화하다","day":"29-30"},{"en":"warehouse","ko":"창고","day":"29-30"},{"en":"scheme","ko":"체계, 제도, (운영) 계획, 책략","day":"29-30"},{"en":"lease","ko":"임대 임차","day":"29-30"},{"en":"searchability","ko":"검색력, 검색 가능성","day":"29-30"},{"en":"maintain","ko":"유지하다, 지속하다, 주장하다","day":"29-30"},{"en":"mobility","ko":"이동성, 유동성","day":"29-30"},{"en":"cluster","ko":"(같은 종류의 물건 또는 사람의) 무리","day":"29-30"},{"en":"license","ko":"(싸용) 허가, 승낙; 면허증, 허가하다","day":"29-30"},{"en":"facilitate","ko":"가능하게 하다, 용이하게 하다","day":"29-30"},{"en":"annual","ko":"연례의, 해마다의","day":"29-30"},{"en":"entrepreneur","ko":"(특히 모험적인) 기업가, 사업가","day":"29-30"},{"en":"manual","ko":"설명서, 손으로 하는, 육체노동의","day":"29-30"},{"en":"extraction","ko":"추출, 채취, 뽑아냄; 혈통","day":"29-30"},{"en":"keep track of","ko":"~을 기록하다, ~을 놓치지 않도록 하다","day":"29-30"},{"en":"expenditure","ko":"지출, 비용","day":"29-30"},{"en":"configuration","ko":"배열, 배치, (컴퓨터) 환경 설정","day":"29-30"},{"en":"high-end","ko":"최고 수준의, 최첨단의","day":"29-30"},{"en":"navigate","ko":"길을 찾다, 항해하다, (인터넷∙웹사이트를) 돌아다니다","day":"29-30"},{"en":"leap","ko":"도약, 뛰다, 뛰어오르다","day":"29-30"},{"en":"look up","ko":"(정보를) 찾아보다","day":"29-30"},{"en":"prosperous","ko":"번영[번창]하는, 성공한","day":"29-30"},{"en":"jam-up","ko":"고장; 정체, 혼잡, 혼잡하게 하다, 고장 나다","day":"29-30"},{"en":"exceed","ko":"초과하다","day":"29-30"},{"en":"precedence","ko":"앞섬, 선행","day":"29-30"},{"en":"afford","ko":"~을 감당할 여유가 되다","day":"29-30"},{"en":"often-cited","ko":"자주 인용되는","day":"29-30"},{"en":"greed","ko":"탐욕, 욕심","day":"29-30"},{"en":"falsify","ko":"위조하다, 조작하다","day":"29-30"},{"en":"materialism","ko":"물질주의","day":"29-30"},{"en":"ubiquitous","ko":"어디에나 있는","day":"29-30"},{"en":"utilize","ko":"이용하다, 활용하다","day":"29-30"},{"en":"ruthlessly","ko":"무자비하게, 잔인하게","day":"29-30"},{"en":"merge","ko":"통합하다, 합병하다","day":"29-30"},{"en":"prevailing","ko":"우세한, 일반적인, 유행하는","day":"29-30"},{"en":"commodity","ko":"상품, 물품, 원자재","day":"29-30"},{"en":"medium","ko":"매체, 수단, 중간의","day":"29-30"},{"en":"landmark","ko":"주요 지형지물, 획기적 사건","day":"29-30"},{"en":"dexterity","ko":"재주; 기민함","day":"29-30"},{"en":"empower","ko":"~에게 권한을 주다","day":"29-30"},{"en":"methodical","ko":"체계적인, 꼼꼼한","day":"29-30"},{"en":"labor force","ko":"노동력","day":"29-30"},{"en":"obsolete","ko":"구식의, 쓸모없게 된","day":"29-30"},{"en":"loaded with","ko":"~이 실린","day":"29-30"},{"en":"assemble","ko":"집합하다, 모으다, 조립하다","day":"29-30"},{"en":"make up for","ko":"~을 벌충하다, ~을 보상하다","day":"29-30"},{"en":"virtual","ko":"(컴퓨터를 이용한) 가상의, 사실상의","day":"29-30"},{"en":"resolve","ko":"해결하다, 풀다, 결심하다, 결의하다","day":"29-30"},{"en":"reanimate","ko":"되살리다, 소생시키다","day":"29-30"},{"en":"consolidate","ko":"합병하다, 굳히다, 강화하다","day":"29-30"},{"en":"unwarranted","ko":"보증되지 않은, 부당한","day":"29-30"},{"en":"deteriorate","ko":"악화되다, 더 나빠지다","day":"29-30"},{"en":"misleading","ko":"오해의 소지가 있는, 오도하는","day":"29-30"},{"en":"manufacture","ko":"제조하다, 생산하다","day":"29-30"},{"en":"modification","ko":"수정, 변경","day":"29-30"},{"en":"monopoly","ko":"독점","day":"29-30"},{"en":"wipe out","ko":"없애 버리다, 쓸어버리다","day":"29-30"},{"en":"weave","ko":"(옷감을) 짜다, 엮다","day":"29-30"},{"en":"unravel","ko":"풀다, 흐트러지기 시작하다","day":"29-30"},{"en":"retail","ko":"소매의, 소매","day":"29-30"},{"en":"abound","ko":"풍부하다, 많이 있다","day":"29-30"},{"en":"shrink","ko":"줄어들다, 축소되다, 움츠리다","day":"29-30"},{"en":"intercept","ko":"가로막다, 가로채다","day":"29-30"},{"en":"harness","ko":"(견인줄을) 매다; 활용하다","day":"29-30"},{"en":"infringe","ko":"침해하다, 위반하다","day":"29-30"},{"en":"committed to","ko":"~에 전념하는, ~에 헌신하는","day":"29-30"},{"en":"misspell","ko":"철자를 잘못 쓰다","day":"29-30"},{"en":"defect","ko":"결함, 흠","day":"29-30"},{"en":"leisurely","ko":"여유로운, 한가한","day":"29-30"},{"en":"surpass","ko":"능가하다, 넘어서다","day":"29-30"},{"en":"demonstration","ko":"시위, 설명, 시연","day":"29-30"}];
+
+  const KEY_WRONG = "ebsfinal1200:wrong-words";
+
+  const VA = {
+    allWords: BASE_WORDS,
+    wrongWords: [],
+    tab: "quiz",
+    quizSize: 20,
+    dayFilter: "all",
+    session: null,
+    searchQuery: "",
+  };
+  window.VA = VA;
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+  function lsGet(key){
+    try{ return localStorage.getItem(key); }catch(e){ return null; }
+  }
+  function lsSet(key, value){
+    try{ localStorage.setItem(key, value); }catch(e){ console.error(e); }
+  }
+
+  const DAYS = [];
+  BASE_WORDS.forEach(w => { if(DAYS.indexOf(w.day) === -1) DAYS.push(w.day); });
+
+  function init(){
+    const stored = lsGet(KEY_WRONG);
+    if(stored){
+      try{ VA.wrongWords = JSON.parse(stored); }catch(e){ VA.wrongWords = []; }
+    }
+    render();
+  }
+  function saveWrong(){ lsSet(KEY_WRONG, JSON.stringify(VA.wrongWords)); }
+
+  VA.switchTab = function(tab){ VA.tab = tab; render(); };
+  VA.setQuizSize = function(n){ VA.quizSize = n; render(); };
+  VA.setDayFilter = function(v){ VA.dayFilter = v; render(); };
+
+  function pool(){
+    if(VA.dayFilter === 'all') return VA.allWords;
+    return VA.allWords.filter(w => w.day === VA.dayFilter);
+  }
+
+  VA.startQuiz = function(){
+    const src = pool();
+    const picked = shuffle(src).slice(0, Math.min(VA.quizSize, src.length));
+    const questions = picked.map(w => {
+      const distractors = shuffle(VA.allWords.filter(x => x.en !== w.en)).slice(0, 3);
+      const options = shuffle([w, ...distractors]).map(o => o.en);
+      return { word: w, prompt: w.ko, options: options, correctAnswer: w.en };
+    });
+    VA.session = { questions: questions, idx:0, correctCount:0, answered:false, selected:null };
+    render();
+  };
+
+  VA.selectAnswer = function(optionText){
+    const s = VA.session;
+    if(!s || s.answered) return;
+    s.answered = true;
+    s.selected = optionText;
+    const q = s.questions[s.idx];
+    if(optionText === q.correctAnswer){
+      s.correctCount++;
+      const before = VA.wrongWords.length;
+      VA.wrongWords = VA.wrongWords.filter(w => w.en !== q.word.en);
+      if(VA.wrongWords.length !== before) saveWrong();
+    } else {
+      if(!VA.wrongWords.some(w => w.en === q.word.en)){
+        VA.wrongWords.push({en:q.word.en, ko:q.word.ko, day:q.word.day});
+        saveWrong();
+      }
+    }
+    render();
+  };
+
+  VA.nextQuestion = function(){
+    const s = VA.session;
+    if(!s) return;
+    if(s.idx < s.questions.length - 1){
+      s.idx++; s.answered = false; s.selected = null;
+    } else {
+      s.idx = s.questions.length;
+    }
+    render();
+  };
+
+  VA.restartQuiz = function(){ VA.session = null; render(); };
+
+  VA.markLearned = function(en){
+    VA.wrongWords = VA.wrongWords.filter(w => w.en !== en);
+    saveWrong();
+    render();
+  };
+
+  VA.onSearchInput = function(v){ VA.searchQuery = v; renderSearchResults(); };
+
+  function renderTabs(){
+    document.getElementById('tab-quiz').className = 'va-tab' + (VA.tab==='quiz' ? ' active' : '');
+    document.getElementById('tab-search').className = 'va-tab' + (VA.tab==='search' ? ' active' : '');
+    document.getElementById('tab-wb').className = 'va-tab' + (VA.tab==='wb' ? ' active' : '');
+    const badge = document.getElementById('wb-badge');
+    if(VA.wrongWords.length > 0){
+      badge.style.display = 'inline-block';
+      badge.textContent = VA.wrongWords.length;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function renderQuizTab(){
+    const body = document.getElementById('va-body');
+
+    if(!VA.session){
+      const n = pool().length;
+      const sizes = [10,20,40,n].filter((v,i,a)=>a.indexOf(v)===i && v<=n && v>0);
+      body.innerHTML = `
+        <div class="va-start">
+          <h2>🎯 한글 뜻 → 영어 단어</h2>
+          <p>한글 뜻을 보고 알맞은 영어 단어를<br>4개 중에서 골라보세요.</p>
+          <div class="va-label">범위 선택</div>
+          <select class="va-select" onchange="VA.setDayFilter(this.value)">
+            <option value="all"${VA.dayFilter==='all'?' selected':''}>전체 (${VA.allWords.length}단어)</option>
+            ${DAYS.map(d => `<option value="${esc(d)}"${VA.dayFilter===d?' selected':''}>Day ${esc(d)}</option>`).join('')}
+          </select>
+          <div class="va-label">문제 수 (범위 내 ${n}단어)</div>
+          <div class="va-count-row">
+            ${sizes.map(s => `<div class="va-count-btn ${VA.quizSize===s?'sel':''}" onclick="VA.setQuizSize(${s})">${s===n?'전체 '+s:s+'문제'}</div>`).join('')}
+          </div>
+          <button class="va-primary-btn" onclick="VA.startQuiz()">🔀 새 시험지 (랜덤)</button>
+        </div>
+        <div class="va-note">이 기기(브라우저)에 자동 저장돼요</div>
+      `;
+      return;
+    }
+
+    const s = VA.session;
+
+    if(s.idx >= s.questions.length){
+      const total = s.questions.length;
+      const pct = Math.round((s.correctCount/total)*100);
+      body.innerHTML = `
+        <div class="va-result">
+          <div style="font-size:38px;">${pct>=80?'🎉':pct>=50?'💪':'📚'}</div>
+          <h2>시험 완료!</h2>
+          <div class="va-score">${s.correctCount} / ${total}</div>
+          <div class="va-score-sub">정답률 ${pct}% · 틀린 단어는 자동으로<br>'내 단어장'에 저장됐어요.</div>
+          <button class="va-primary-btn" onclick="VA.restartQuiz()">🔀 새 시험지 (랜덤)</button>
+        </div>
+      `;
+      return;
+    }
+
+    const q = s.questions[s.idx];
+    const pct = Math.round((s.idx/s.questions.length)*100);
+
+    let choicesHtml = '';
+    q.options.forEach(opt => {
+      let cls = 'va-choice';
+      if(s.answered){
+        cls += ' disabled';
+        if(opt === q.correctAnswer) cls += ' correct';
+        else if(opt === s.selected) cls += ' wrong';
+      }
+      choicesHtml += `<div class="${cls}" onclick="VA.selectAnswer(${JSON.stringify(opt).replace(/"/g,'&quot;')})">${esc(opt)}</div>`;
+    });
+
+    let feedbackHtml = '';
+    if(s.answered){
+      const correct = s.selected === q.correctAnswer;
+      feedbackHtml = `<div class="va-feedback ${correct?'ok':'no'}">${correct? '✅ 정답이에요!' : '❌ 오답! 정답: ' + esc(q.correctAnswer)}</div>`;
+    }
+
+    body.innerHTML = `
+      <div class="va-progress-row">
+        <span>문항 ${s.idx+1} / ${s.questions.length}</span>
+        <span>맞힌 개수 ${s.correctCount}</span>
+      </div>
+      <div class="va-progress-bar"><div class="va-progress-fill" style="width:${pct}%"></div></div>
+      <div class="va-qcard">
+        <div class="va-qtype">한글 뜻 → 영어</div>
+        <div class="va-qword">${esc(q.prompt)}</div>
+      </div>
+      <div class="va-choices">${choicesHtml}</div>
+      ${feedbackHtml}
+      ${s.answered ? `<div class="va-next-wrap"><button class="va-primary-btn" onclick="VA.nextQuestion()">${s.idx < s.questions.length-1 ? '다음 문제 →' : '결과 보기'}</button></div>` : ''}
+    `;
+  }
+
+  function renderSearchResults(){
+    const list = document.getElementById('va-search-results');
+    if(!list) return;
+    const q = VA.searchQuery.trim();
+    if(q === ''){
+      list.innerHTML = `<div class="va-wb-empty">🔎 한글 뜻이나 영어 단어를<br>위 칸에 입력해보세요.</div>`;
+      return;
+    }
+    const lower = q.toLowerCase();
+    const matches = VA.allWords.filter(w => w.ko.includes(q) || w.en.toLowerCase().includes(lower));
+    if(matches.length === 0){
+      list.innerHTML = `<div class="va-wb-empty">😅 "${esc(q)}"에 맞는 단어를<br>찾지 못했어요.</div>`;
+      return;
+    }
+    let html = `<div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:12px;">${matches.length}개 찾음</div>`;
+    matches.slice(0,100).forEach(w => {
+      html += `
+        <div class="va-wb-item">
+          <div>
+            <div class="va-wb-en">${esc(w.en)}</div>
+            <div class="va-wb-ko">${esc(w.ko)}</div>
+            <div class="va-wb-day">Day ${esc(w.day)}</div>
+          </div>
+        </div>`;
+    });
+    if(matches.length > 100){
+      html += `<div style="text-align:center;font-size:12px;color:var(--sub);margin-top:8px;">결과가 많아 100개까지만 보여드려요.</div>`;
+    }
+    list.innerHTML = html;
+  }
+
+  function renderSearchTab(){
+    const body = document.getElementById('va-body');
+    body.innerHTML = `
+      <div style="margin-top:10px;margin-bottom:14px;">
+        <input type="text" id="va-search-input" class="va-search-input"
+          placeholder="한글 뜻 또는 영어 단어 입력"
+          value="${esc(VA.searchQuery)}" oninput="VA.onSearchInput(this.value)" />
+      </div>
+      <div id="va-search-results"></div>
+    `;
+    document.getElementById('va-search-input').focus();
+    renderSearchResults();
+  }
+
+  function renderWbTab(){
+    const body = document.getElementById('va-body');
+    if(VA.wrongWords.length === 0){
+      body.innerHTML = `<div class="va-wb-empty">📭 아직 저장된 단어가 없어요.<br>시험지를 풀다가 틀리면<br>여기에 자동으로 모여요.</div>`;
+      return;
+    }
+    let html = `<div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:12px;">총 ${VA.wrongWords.length}개 단어</div>`;
+    VA.wrongWords.forEach(w => {
+      html += `
+        <div class="va-wb-item">
+          <div>
+            <div class="va-wb-en">${esc(w.en)}</div>
+            <div class="va-wb-ko">${esc(w.ko)}</div>
+            ${w.day ? `<div class="va-wb-day">Day ${esc(w.day)}</div>` : ''}
+          </div>
+          <button class="va-wb-btn" onclick="VA.markLearned(${JSON.stringify(w.en).replace(/"/g,'&quot;')})">✓ 외웠어</button>
+        </div>`;
+    });
+    body.innerHTML = html;
+  }
+
+  function render(){
+    renderTabs();
+    if(VA.tab === 'quiz') renderQuizTab();
+    else if(VA.tab === 'search') renderSearchTab();
+    else renderWbTab();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
